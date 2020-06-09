@@ -1,4 +1,4 @@
-?php
+<?php
 
 require_once('constants.php');
 
@@ -32,7 +32,7 @@ function dbConnect()
 // \return The object user
 function dbCreateUser($db,$mail){
   try{
-    $request='SELECT * FROM user WHERE mail=:mail';
+    $request='SELECT u.mail, u.prenom, u.nom, u.password, u.admin, c.club FROM user u JOIN club c ON u.mail=c.mail WHERE u.mail=:mail';
     $statement=$db->prepare($request);
     $statement->bindParam(':mail', $mail, PDO::PARAM_STR,255);
     $statement->execute();
@@ -43,7 +43,7 @@ function dbCreateUser($db,$mail){
     error_log('Request error: '.$exception->getMessage());
     return false;
   }
-  return $user;
+  return $user[0];
 }
 
 
