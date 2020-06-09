@@ -6,6 +6,7 @@ class User{
     private $prenom;
     private $password;
     private $admin;
+    private $club;
 
     /*function __construct($mail,$nom,$prenom,$password,$admin){
         $this->mail=$mail;
@@ -19,7 +20,7 @@ class User{
         return $this->mail;
     }
 
-    public function getNom(){
+    function getNom(){
         return $this->nom;
     }
 
@@ -33,6 +34,10 @@ class User{
 
     public function getAdmin(){
         return $this->admin;
+    }
+
+    public function getClub(){
+        return $this->club;
     }
 
     public function setMail($mail){
@@ -53,5 +58,9 @@ class User{
 
     public function setAdmin($admin){
         $this->admin=$admin;
+    }
+
+    public function setClub($club){
+        $this->club=$club;
     }
 }
