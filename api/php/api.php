@@ -1,6 +1,7 @@
 <?php
 
 require_once('database.php');
+require_once('Class/user.php');
 
 //Connexion à la base de donnéee
 $db= dbConnect();
@@ -13,7 +14,6 @@ if($db == false){
 //C'est içi que l'on place en dur le mail du user
 $mailUser = 'jlr@mental.com';
 $user=dbCreateUser($db,$mailUser);
-
 
 // On récupère la requete de ajax.js
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -28,7 +28,7 @@ if ($id == '')    $id= NULL;
 //Si on veut les cyclistes
 if($requestRessource=='cyclistes'){
     if($requestMethod=='GET'){
-        $data=dbRequestCyclistes($db,$user.getClub(),$user.getAdmin());
+        $data=dbRequestCyclistes($db,$user->getClub(),$user->getAdmin());
     }
 
     sendJsonData($data,'GET');
@@ -56,3 +56,4 @@ function sendJsonData($data,$code){
     }
     exit();
 }
+
