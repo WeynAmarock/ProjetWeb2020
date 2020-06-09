@@ -2,11 +2,13 @@
 
 function ajaxRequest (type, url, callback, data = null) {
     let xhr = new XMLHttpRequest();
+    if (type == 'GET' && data != null) {
+        url += '?' + data;
+    }
     xhr.open(type, url);
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
     
     xhr.onload = () => {
-        // console.log(xhr.responseText);
         switch (xhr.status) {
             case 200:
             case 201:
@@ -22,6 +24,5 @@ function ajaxRequest (type, url, callback, data = null) {
 }
 
 function httpErrors (errorCode) {
-    $('#errors').show();
-    $('#errors').html('HTTP ERROR : ' + errorCode);
+    console.log(errorCode);
 }
