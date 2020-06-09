@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <!-- Scripts JS -->
+        <script type="text/javascript" src= "js\ajax.js" defer></script>
+        <script type="text/javascript" src= "js\loading.js" defer></script>
+        <!-- Fichiers CSS -->
+        <link type="text/css" rel="stylesheet" href="css/header.css">
+        <link type="text/css" rel="stylesheet" href="css/footer.css">
+        <link type="text/css" rel="stylesheet" href="css/main.css">
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <!-- JQuery -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.slim.min.js"
+        integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"
+        integrity="sha256-x3YZWtRjM8bJqf48dFAv/qmgL68SI4jqNWeSLMZaMGA=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div id="header">
+			
+            <div id="navbar">
+                        
+                <img id="logo" src="images/velo.png" style=" width: 10%">
+            
+                <ul id="menu">
+                    <li><a href="../index.php">Accueil</a></li>
+                    <li><a href="php/coureurs.php" class="active">Mes Coureurs</a></li>
+                    <li><a href="php/courses.php">Mes Courses</a></li>
+                    <li><a href="php/classements.php">Mes classements</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Cyclistes&Cir.com</h1>
+            <div id="choix">
+                <button class="choix" onclick=window.location.href="php/coureurs.php">Gestion des Coureurs</button>
+                <button class="choix" onclick=window.location.href="php/courses.php">Gestion des Courses</button>
+                <button class="choix" onclick=window.location.href="php/classements.php">Gestion des classements</button>
+            </div>
+        </div>
+
+        <footer>
+            <hr id="grey_hr">
+            <div id="isen" class="elem_foot">
+                <img src="images/ISEN.jpg" id="logo_isen">
+            </div>
+        
+            <div id="mentions" class="elem_foot">
+                <p>@-2020-Gouyet-Poupon<br>Projet CIR2 </p>
+            </div>
+
+            <div id="logo_php" class="elem_foot">
+                <img src="images/velo.png" width="10%">
+            </div>
+        </footer>
+    </body>
+</html>
