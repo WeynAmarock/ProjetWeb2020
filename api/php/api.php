@@ -91,7 +91,3 @@ function sendJsonData($data,$code){
     }
     exit();
 }
-
-
-}
-
