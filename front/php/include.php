@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8">
         <!-- Scripts JS -->
-
+        <script type="text/javascript" src= "../js\ajax.js" defer></script>
+        <script type="text/javascript" src= "../js\loading.js" defer></script>
         <!-- Fichiers CSS -->
         
         <link type="text/css" rel="stylesheet" href="../css/main.css">
@@ -16,6 +17,5 @@
         integrity="sha256-x3YZWtRjM8bJqf48dFAv/qmgL68SI4jqNWeSLMZaMGA=" crossorigin="anonymous"></script>
     </head>
     <body>
-        
     </body>
 </html>
