@@ -1,7 +1,7 @@
 footer{
     height: 60px;
     width: 100%;
-    background-color: rgb(235, 203, 46);
+    background-color: rgb(88, 88, 88);
     position: fixed;
     bottom: 0;
     margin: 0 auto;
@@ -10,7 +10,7 @@ footer{
 
 #grey_hr{
     height: 5px;
-    background-color: rgb(88, 88, 88);
+    background-color: rgb(235, 203, 46);
     margin-top: 0;
 }
 
