@@ -18,16 +18,19 @@
                 <form id="formulaire" method="POST">
                     <table id="coureurs" class="table table-stripped">
                         <tr>
+                            <th>Mail</th>
                             <th>Nom </th>
                             <th>Prénom </th>
                             <th>Club</th>
-                            <th>Mail</th>
                             <th>Date de Naissance</th>
                             <th>Numéro de licence</th>
+                            <th>Categorie Age</th>
+                            <th>Categorie Valeur</th>
+                            
                         </tr>
                        
                     </table>
-                    <button type="submit" class="button" name="btnSub">Valider</button>
+                    
                     
                 </form>
             </section>
