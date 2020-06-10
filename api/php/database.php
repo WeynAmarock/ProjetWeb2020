@@ -83,7 +83,6 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide
           date_naissance=:date, valide=:valide, club=:club
           WHERE mail=:mail';
     $statement = $db->prepare($request);
-    //$statement->bindParam(':new_mail', $new_mail, PDO::PARAM_STR, 255);
     $statement->bindParam(':mail', $mail, PDO::PARAM_STR, 255);
     $statement->bindParam(':nom', $nom, PDO::PARAM_STR, 100);
     $statement->bindParam(':prenom', $prenom, PDO::PARAM_STR, 100);
@@ -128,17 +127,17 @@ function dbRequestRaces($db){
 //----------------------------------------------------------------------------
 //--- dbRequestCyclistOnRace -------------------------------------------------
 //----------------------------------------------------------------------------
-//Get the name of the cyclist in the race
+//Get the name and the mail of the cyclist in the race Id
 //\param $db The connected database.
 //\param $club The cyclists club
 //\param $admin True if the user is a admin
 //\param $id Id of the race
-//Return the name and the mail of cyclists registered in the race  
+//Return the name and the mail of cyclists registered in the race Id
 function dbRequestCyclistOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
         JOIN cycliste cy ON p.mail=cy.mail 
-        WHERE p.id=:id ';
+        WHERE p.id=:id AND cy.valide=1';
     if(!$admin){
       $request=$request . 'AND cy.club=:club';
     }
@@ -158,11 +157,21 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
     return $result;     
 }
 
+//----------------------------------------------------------------------------
+//--- dbRequestCyclistOnRace -------------------------------------------------
+//----------------------------------------------------------------------------
+//Get the mail of the cyclist in the race Id
+//Get the name and the mail of the cyclist in the race Id
+//\param $db The connected database.
+//\param $club The cyclists club
+//\param $admin True if the user is a admin
+//\param $id Id of the race
+//Return the mail of cyclists registered in the race Id
 function dbRequestMailOnRace($db,$club,$admin,$id){
   try{
-    $request='SELECT mail FROM participe WHERE id=:id ';
+    $request='SELECT p.mail FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id AND c.valide=1';
     if(!$admin){
-      $request=$request . 'AND cy.club=:club';
+      $request=$request . 'AND c.club=:club';
     }
     $statement=$db->prepare($request);
     $statement->bindParam(':id',$id);
@@ -180,8 +189,6 @@ function dbRequestMailOnRace($db,$club,$admin,$id){
     return $result;     
 }
 
-//$db=dbConnect();
-//$mails=dbRequestMailOnRace($db,)
 
 //----------------------------------------------------------------------------
 //--- dbRequestCyclistNotOnRace -------------------------------------------------
@@ -192,14 +199,18 @@ function dbRequestMailOnRace($db,$club,$admin,$id){
 //\param $admin True if the user is a admin
 //\param $id Id of the race
 //Return the name of cyclists who are not registered in the race  
-function dbRequestCyclistNotOnRace($db,$club,$admin,$id,$mails){
+function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
+  $mails=dbRequestMailOnRace($db,$club,$admin,$id);
   try{
-    $request='SELECT mail FROM participe WHERE p.id=:id ';
+    $request='SELECT nom, prenom, mail FROM cycliste WHERE valide=1';
+    foreach($mails as $mail){
+        $request=$request.' AND mail!=\''.$mail['mail'].'\'';
+    }
     if(!$admin){
-      $request=$request . 'AND cy.club=:club';
+      $request=$request . ' AND club=:club';
     }
     $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id);
+    echo $request;
     if(!$admin){
       $statement->bindParam(':club',$club);
     }
@@ -213,6 +224,11 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id,$mails){
   }
     return $result;
 }
+
+$db=dbConnect();
+$tests=dbRequestCyclistNotOnRace($db,'ABC PLOUESCAT',0,1);
+var_dump($tests);
+
 
 //----------------------------------------------------------------------------
 //--- dbAddCyclisteOnRace ----------------------------------------------------
