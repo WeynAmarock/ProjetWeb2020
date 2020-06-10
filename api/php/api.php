@@ -1,7 +1,6 @@
-<?php
+<<?php
 
 require_once('database.php');
-require_once('Class/user.php');
 
 //Connexion à la base de donnéee
 $db= dbConnect();
@@ -29,15 +28,14 @@ if ($id == '')    $id= NULL;
 if($requestRessource=='cyclistes'){
     if($requestMethod=='GET'){
         $data=dbRequestCyclistes($db,$user->getClub(),$user->getAdmin());
-        echo 
     }
     if($requestMethod=='PUT'){
         parse_str(file_get_contents('php://input'), $_PUT);
-        if(isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
-                && isset($_PUT['date']) && $_PUT['valide']){  
+        if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
+                && isset($_PUT['date']) && isset($_PUT['club']) && isset($_PUT['valide'])){  
 
-            $data=dbModifyCyclist($db,$user->getClub(),$_PUT['nom'],$_PUT['prenom'],
-                $_PUT['num_licence'],$_PUT['date'],$_PUT['valide']);
+            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['mail'],$_PUT['prenom'],
+                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['valide']);
 
         }
     }
@@ -66,28 +64,6 @@ if($requestRessource=='courses'){
         }
     }
 }
-
-
-
-
-
-function sendJsonData($data,$code){
-    header('Content-Type: application/json');
-    header('Cache-control: no-store, no-cache, must-revalidate');
-    header('Pragma: no-cache');
-    if ($data != NULL) {
-        if ($code == 'POST') {
-            header('HTTP/1.1 201 Created');
-        } else {
-            header('HTTP/1.1 200 OK');
-        }
-            echo json_encode($data);
-    } else {
-        header('HTTP/1.1 500 Internal Server Error');
-    }
-    exit();
-}
-
 
 
 
