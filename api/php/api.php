@@ -1,4 +1,4 @@
-<<?php
+<?php
 
 require_once('database.php');
 
@@ -19,6 +19,12 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $request = substr($_SERVER['PATH_INFO'], 1);
 $request = explode('/', $request);
 $requestRessource = array_shift($request);
+
+if ($requestMethod == 'OPTIONS')
+{
+header('HTTP/1.1 200 OK');
+exit;
+}
 
 //On récupère l'id dans l'URL
 $id= array_shift($request); //id du commentaire
@@ -84,5 +90,8 @@ function sendJsonData($data,$code){
         header('HTTP/1.1 500 Internal Server Error');
     }
     exit();
+}
+
+
 }
 
