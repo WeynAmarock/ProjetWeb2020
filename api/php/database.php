@@ -225,11 +225,6 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
     return $result;
 }
 
-$db=dbConnect();
-$tests=dbRequestCyclistNotOnRace($db,'ABC PLOUESCAT',0,1);
-var_dump($tests);
-
-
 //----------------------------------------------------------------------------
 //--- dbAddCyclisteOnRace ----------------------------------------------------
 //----------------------------------------------------------------------------
