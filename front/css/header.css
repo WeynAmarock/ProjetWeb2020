@@ -16,10 +16,10 @@ h2{
 #menu{
     margin-top: 0;
     list-style-type: none;
-    background-color: rgb(235, 203, 46);
+    background-color: rgb(88, 88, 88);
     margin-left: 0;
     width: 100%;
-    border-bottom: rgb(88, 88, 88) 5px solid;
+    border-bottom: rgb(235, 203, 46) 5px solid;
     z-index: 3;
 }
 
@@ -27,7 +27,7 @@ h2{
 ul {
     margin: 0;
     padding: 0;
-    background-color: rgb(235, 203, 46);
+    background-color: rgb(88, 88, 88);
     overflow: hidden;
 }
 
@@ -45,7 +45,7 @@ ul li a{
     width:16%;
     color: white;
     display: block;
-    background-color: rgb(235, 203, 46);
+    background-color: rgb(88, 88, 88);
     text-align: center;
     font-size: 1.5em;
     border-right: #d7D7D7 1px solid;
@@ -68,7 +68,7 @@ ul li a:hover{
 
 .active{
     color: rgb(88, 88, 88);
-    background-color: #D7D7D7;
+    background-color: rgb(235, 203, 46);
     border-color: gray;
     font-size: 1.5em;
 }
@@ -80,12 +80,6 @@ ul li a:hover{
 	padding: 0;
 	border: 0;
     background-color: none;
-}
-
-h4{
-    color: rgb(219, 219, 23);
-    text-align: left;
-
 }
 
 p{
@@ -100,13 +94,6 @@ p{
     margin-left: -8px;
     
 }
-
-#img{
-    /* -webkit-filter: grayscale(90%); */
-    border-bottom: rgb(88,88,88) 5px solid;
-}
-
-
 
 #header{
     margin-bottom : 50px;
