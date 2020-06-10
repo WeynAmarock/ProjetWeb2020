@@ -158,7 +158,7 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
 }
 
 //----------------------------------------------------------------------------
-//--- dbRequestCyclistOnRace -------------------------------------------------
+//--- dbRequestMailOnRace -------------------------------------------------
 //----------------------------------------------------------------------------
 //Get the mail of the cyclist in the race Id
 //Get the name and the mail of the cyclist in the race Id
