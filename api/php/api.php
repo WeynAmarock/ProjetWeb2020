@@ -40,7 +40,7 @@ if($requestRessource=='cyclistes'){
         if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
                 && isset($_PUT['date']) && isset($_PUT['club']) && isset($_PUT['valide'])){  
 
-            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['mail'],$_PUT['prenom'],
+            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['prenom'],
                 $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['valide']);
 
         }
