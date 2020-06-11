@@ -1,61 +1,105 @@
 
+
+
 ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loadCycliste);
 
 
 //Affichage des infos du coureur
 function loadCycliste(coureurs){
     var div = document.getElementById('tbody');
-    div.innerHTML='';
-    for(const coureur of coureurs){
-        //console.log(coureur);
-        var element = document.createElement('tr');
-        element.innerHTML=  '<td>'+coureur['mail']+'</td>'
-                            +'<td><input type="text" id="nom_'+coureur['mail']+'" value="'+coureur['nom']+'"></td>'
-                            +'<td><input type="text" name="prenom_'+coureur['mail']+'" value="'+coureur['prenom']+'"></td>'
-                            +'<td><input type="text" name="date_'+coureur['mail']+'" value="'+coureur['date_naissance']+'"></td>'
-                            +'<td><input type="text" name="num_'+coureur['mail']+'" value="'+coureur['num_licence']+'"></td>'
-                            +'<td><input type="text" name="club_'+coureur['mail']+'" value="'+coureur['club']+'"></td>'
-                            +'<td><input type="text" name="valide'+coureur['mail']+'" value="'+coureur['valide']+'"></td>'
+    var valide='';
+    if(div != null){
+        div.innerHTML='';
+        for(const coureur of coureurs){
+            //console.log(coureur);
+            if(coureur['valide']){
+                valide='<option required>1</option> <option>0</option>';
+            }else{
+               valide='<option required>0</option> <option>1</option>';
+            }
+            var element = document.createElement('tr');
+            element.innerHTML=  '<td>'+coureur['mail']+'</td>'
+                            +'<td><input required type="text" id="nom_'+coureur['mail']+'" value="'+coureur['nom'].trim()+'"></td>'
+                            +'<td><input required type="text" id="prenom_'+coureur['mail']+'" value="'+coureur['prenom'].trim()+'"></td>'
+                            +'<td><input required type="text" id="date_'+coureur['mail']+'" value="'+coureur['date_naissance']+'"></td>'
+                            +'<td><input required type="text" id="num_'+coureur['mail']+'" value="'+coureur['num_licence']+'"></td>'
+                            +'<td> <select id="club_'+coureur['mail']+'"><option selected>'+coureur['club'].trim()+'</option> </select> </td>'
+                            +'<td> <select id="code_'+coureur['mail']+'"><option selected>'+coureur['code_insee'].trim()+'</option> </select> </td>'
+                            +'<td> <select id="valide_'+coureur['mail']+'">'+valide+'</select> </td>'
                             +'<td>'+coureur['categorie']+'</td>'
                             +'<td>'+coureur['categorie_categorie_valeur']+'</td>';
-        div.append(element); 
+                              
+            ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/clubs', (clubs)=>{
+                for(const club of clubs){
+                    var c=document.getElementById('club_'+coureur['mail']);
+                    if(club['club']!=coureur['club'].trim()){
+                        var element = document.createElement('option');
+                        element.innerHTML = club['club'];
+                        c.append(element);
+                    }
+                }
+            });
+
+            ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/code_insee', (codes)=>{
+                for(const code of codes){
+                    var c=document.getElementById('code_'+coureur['mail']);
+                    if(code['code_insee']!=coureur['code_insee'].trim()){
+                        var element = document.createElement('option');
+                        element.innerHTML = code['code_insee'];
+                        c.append(element);
+                    }
+                }
+            });
+
+            div.append(element); 
+        }
     }
 }
 
-var element = document.getElementById('Modifier');
-element.onclick=modifierCyclistes;
 
-//ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/', ()=>{},'mail=cl@team.gt & nom=B    & prenom=Louis    & num_licence=695576 & date=0000-00-00 & club=ABC PLOUESCAT & valide=1');
-//mail=dj@taem.com & nom=Cout & prenom=Claude & num_licence='+1234+
-//                       ' & date=2000-5-10 & club=ABC PLOUESCAT    & valide='+1);
+
+var element = document.getElementById('Modifier');
+if(element != null){
+    element.onclick=modifierCyclistes;
+}
+
 
 function modifierCyclistes(){
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', UdapteCyclistes);
 }
 
 
-//Pas fonctionel 
 function UdapteCyclistes(cyclistes) {
     for(const cycliste of cyclistes){
 
-        //var ele=document.getElementsByName('prenom_cl@team.gt');
-        //console.log(ele);
-
-        var param = 'mail='+cycliste['mail']+' & nom=B & prenom='+cycliste['prenom']+' & num_licence='+cycliste['num_licence']+' & date='+cycliste['date_naissance']+' & club=ABC PLOUESCAT & valide='+cycliste['valide'];
-        console.log(param);
+        var nom=document.getElementById('nom_'+cycliste['mail']).value;
+        var prenom=document.getElementById('prenom_'+cycliste['mail']).value;
+        var num=document.getElementById('num_'+cycliste['mail']).value;
+        var date=document.getElementById('date_'+cycliste['mail']).value;
+        var club=document.getElementById('club_'+cycliste['mail']).value;
+        var code=document.getElementById('code_'+cycliste['mail']).value;
+        var valide=document.getElementById('valide_'+cycliste['mail']).value;
+        
+        var param = 'mail='+cycliste['mail']+' & nom='+nom+' & prenom='+prenom+' & num_licence='+num+' & date='+date+' & club='+club+' & code='+code+' & valide='+valide;
         ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/',() => {
- 
+
         },param);
     }
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loadCycliste);
     alert('Vous avez modifié des informations sur les cyclistes.');
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loadCycliste);
 }
+
+
+
+/*ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in1',(cycliste)=>{
+    console.log(cycliste);
+});*/
 
 //Pour les informations de course
 
 function loadCourse(courses){
     var parcours = "";
-
+    
     courses.forEach(course =>{
         // console.table(coureur);
         parcours = fillCourse(course);
@@ -65,22 +109,13 @@ function loadCourse(courses){
 }
 
 function fillCourse(course){
-    var chemin = '<tr><th>'+course['id']+'</th><td>'+course['libelle']+'</td><td>'+course['date']+'</td><td>'+course['nb_tour']+'</td><td>'+course['distance']+'</td><td>'+course['nb_coureur']+'</td><td>'+course['longueur_tour']+'</td><td>'+course['club']+'</td><td><button class="button" name="btnSub" id="'+course['id']+'">Voir +</button></td></tr>';
+    var chemin = '<tr><th>'+course['id']+'</th><td>'+course['libelle']+'</td><td>'+course['date']+'</td><td>'+course['nb_tour']+'</td><td>'+course['distance']+'</td><td>'+course['nb_coureur']+'</td><td>'+course['longueur_tour']+'</td><td>'+course['club']+'</td><td><button class="button" name="bouton" id="'+course['id']+'">Voir +</button></td></tr>';
     console.log(chemin);
     return chemin;
 }
 
 ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses', loadCourse);
-ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses', fillCourseName);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////NON FONCTIONNEL /////////////////////////////////////////////////////////////////
-
-function fillCourseName(course){
-    var name = '<h2>'+course['libelle']+'</h2>';
-    $('#course_name').append(name);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
+// var bouton_course = document.getElementsById('...');
+// bouton_course.onclick= document.getElementById('content').style.display='none';
