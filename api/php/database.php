@@ -6,8 +6,8 @@ require_once('constants.php');
 //----------------------------------------------------------------------------
 //--- dbConnect --------------------------------------------------------------
 //----------------------------------------------------------------------------
-// Create the connection to the database.
-// \return False on error and the database otherwise.
+// Crée la connexion à une BDD
+// \return Renvoie une erreur ou la base de donnée autrement .
 function dbConnect()
   {
     try
@@ -26,10 +26,10 @@ function dbConnect()
 //----------------------------------------------------------------------------
 //--- dbCreateUser -----------------------------------------------------------
 //----------------------------------------------------------------------------
-// Create the object user 
-// \param $db The connected database.
-// \param $mail The mail of the user
-// \return The object user
+// Crée l'object user
+// \param $db La connexion à la BDD
+// \param $mail Le mail du user 
+// \return L'objet user
 function dbCreateUser($db,$mail){
   try{
     $request='SELECT u.mail, u.prenom, u.nom, u.password, u.admin, c.club FROM user u JOIN club c ON u.mail=c.mail WHERE u.mail=:mail';
@@ -50,11 +50,11 @@ function dbCreateUser($db,$mail){
 //----------------------------------------------------------------------------
 //--- dbRequestCyclistes -----------------------------------------------------
 //----------------------------------------------------------------------------
-//Get all cyclistes 
-// \param $db The connected database.
-// \param $club The cyclists club
-// \param $admin True if the user is the admin 
-// \return The list of the cyclists
+//Retourne tout les cyclistes 
+// \param $db La connexion à la BDD
+// \param $club Le club des cyclistes
+// \param $admin Vrais si le user est l'admin
+// \return Une liste des cyclistes
 function dbRequestCyclistes($db,$club,$admin){
   try{
     $request = 'SELECT * FROM cycliste';
@@ -98,7 +98,7 @@ function dbRequestCodeInsee($db){
 }
 
 //----------------------------------------------------------------------------
-//--- dbRequestClub -----------------------------------------------------
+//--- dbRequestClub ----------------------------------------------------------
 //----------------------------------------------------------------------------
 //Retourne tout les clubs
 //\parma $db La connexion à la BDD
@@ -118,12 +118,24 @@ function dbRequestClub($db){
   return $result;  
 }
 
-
-//Code Insee non fonctionnel
-function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide){
+//----------------------------------------------------------------------------
+//--- dbModifyCyclist --------------------------------------------------------
+//----------------------------------------------------------------------------
+//Modifie les données dans la bdd des cyclistes
+// \param $db La connecion à la BDD
+// \param $mail Le mail du cycliste à modifier
+// \param $nom Le nom à mettre dans la BDD
+// \param $prenom Le prenom à mettre dans la BDD
+// \param $num_licence Le numéro de licence à mettre dans la BDD
+// \param $date La date de naissance à mettre dans la BDD
+// \param $club Le nom du club à mettre dans la BDD
+// \param $code_insee Le code INSEE à mettre dans la BDD
+// \param $valide Si le cycliste est valide à mettre dans la BDD
+// \return Renvoie FALSE en cas d'erreur et TRUE autrement 
+function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$code_insee,$valide){
   try{
     $request = 'UPDATE cycliste SET nom=:nom, prenom=:prenom, num_licence=:num_licence,
-          date_naissance=:date, valide=:valide, club=:club
+          date_naissance=:date, valide=:valide, club=:club, code_insee=:code_insee
           WHERE mail=:mail';
     $statement = $db->prepare($request);
     $statement->bindParam(':mail', $mail, PDO::PARAM_STR, 255);
@@ -133,7 +145,7 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide
     $statement->bindParam(':date', $date, PDO::PARAM_STR);
     $statement->bindParam(':valide', $valide, PDO::PARAM_BOOL);
     $statement->bindParam(':club', $club, PDO::PARAM_STR,255);
-    //$statement->bindParam(':code_insee', $code_insee, PDO::PARAM_INT);
+    $statement->bindParam(':code_insee', $code_insee, PDO::PARAM_INT);
     $statement->execute();
   }
   catch (PDOException $exception)
@@ -163,7 +175,7 @@ function dbRequestRace($db,$id){
     error_log('Request error: '.$exception->getMessage());
     return false;
   }
-  return $result;     
+  return $result[0];     
 }
   
 
@@ -171,9 +183,9 @@ function dbRequestRace($db,$id){
 //----------------------------------------------------------------------------
 //--- dbRequestRaces ---------------------------------------------------------
 //----------------------------------------------------------------------------
-//Get all races
-// \param db The connected database.
-// \return The list of the races
+//Retourne toutes les courses 
+// \param $db La connexion à la BDD.
+// \return Une liste de toute les courses
 function dbRequestRaces($db){
   try{
     $request = 'SELECT * FROM course';
@@ -190,25 +202,48 @@ function dbRequestRaces($db){
 }
 
 //----------------------------------------------------------------------------
+//--- dbRequestClubRace ------------------------------------------------------
+//----------------------------------------------------------------------------
+//Retourne le club qui organise la course
+// \param $db La connexion à la BDD.
+// \return le nom du club 
+function dbRequestClubRace($db){
+  try{
+    $request = 'SELECT club FROM course';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;     
+}
+
+
+//----------------------------------------------------------------------------
 //--- dbRequestCyclistOnRace -------------------------------------------------
 //----------------------------------------------------------------------------
-//Get the name and the mail of the cyclist in the race Id
-//\param $db The connected database.
-//\param $club The cyclists club
-//\param $admin True if the user is a admin
-//\param $id Id of the race
-//Return the name and the mail of cyclists registered in the race Id
+//Retourne les informations sur les cyclistes qui participent à la course
+// \param $db La connexion à la BDD
+//\param $club Le nom du club 
+//\param $admin Vrai si le user est l'admin
+//\param $id L'id de la course 
+//Return Le nom, prenom et mail des cyclistes enregistrés dans la course
 function dbRequestCyclistOnRace($db,$club,$admin,$id){
+  $clubCourse=dbRequestClubRace($db);
   try{
     $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
-        JOIN cycliste cy ON p.mail=cy.mail 
+        JOIN cycliste cy ON p.mail=cy.mail
         WHERE p.id=:id AND cy.valide=1';
-    if(!$admin){
+    if(!$admin && $clubCourse=!$club){
       $request=$request . 'AND cy.club=:club';
     }
     $statement=$db->prepare($request);
     $statement->bindParam(':id',$id);
-    if(!$admin){
+    if(!$admin && $clubCourse=!$club){
       $statement->bindParam(':club',$club);
     }
     $statement->execute();
@@ -223,15 +258,13 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
 }
 
 //----------------------------------------------------------------------------
-//--- dbRequestMailOnRace -------------------------------------------------
+//--- dbRequestMailOnRace ----------------------------------------------------
 //----------------------------------------------------------------------------
-//Get the mail of the cyclist in the race Id
-//Get the name and the mail of the cyclist in the race Id
-//\param $db The connected database.
-//\param $club The cyclists club
-//\param $admin True if the user is a admin
-//\param $id Id of the race
-//Return the mail of cyclists registered in the race Id
+//Retourne le mail des cyclistes dans la course
+//\param $db La connexion à la BDD
+//\param $club Le nom du club
+//\param $admin Vrais si le user est l'admin
+//\param $id L'identifiant de la course
 function dbRequestMailOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT p.mail FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id AND c.valide=1';
@@ -256,14 +289,13 @@ function dbRequestMailOnRace($db,$club,$admin,$id){
 
 
 //----------------------------------------------------------------------------
-//--- dbRequestCyclistNotOnRace -------------------------------------------------
+//--- dbRequestCyclistNotOnRace ----------------------------------------------
 //----------------------------------------------------------------------------
-//Get the name of the cyclist who are not in the race
-//\param $db The connected database.
-//\param $club The cyclists club
-//\param $admin True if the user is a admin
-//\param $id Id of the race
-//Return the name of cyclists who are not registered in the race  
+//Retourne les nom, prenoms, et mail des cyclistes non inscrits à la course
+//\param $db La connexion à la BDD
+//\param $club Le nom du club
+//\param $admin Vrais si le user est l'admin
+//\param $id L'identifiant de la course
 function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
   $mails=dbRequestMailOnRace($db,$club,$admin,$id);
   try{
@@ -293,11 +325,11 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
 //----------------------------------------------------------------------------
 //--- dbAddCyclisteOnRace ----------------------------------------------------
 //----------------------------------------------------------------------------
-//Add a cyclist in a race
-//\param $db The connected database.
-//\param $id Id of the race
-//\param $mail Cyclist's mail
-// \return True on success, false otherwise
+//Ajoute un cycliste dans la course
+//\param $db La connexion à la BDD 
+//\param $id L'identifiant de la course
+//\param $mail le mail du cycliste
+// \return Vrais si l'ajout est réusie et faux autrement
 function dbAddCyclistOnRace($db,$mail,$id){
   try{
     $request='INSERT INTO participe(mail, id)
@@ -318,15 +350,17 @@ function dbAddCyclistOnRace($db,$mail,$id){
 //----------------------------------------------------------------------------
 //--- dbDeleteCyclistOnRace ----------------------------------------------------
 //----------------------------------------------------------------------------
-//Delete a cyclist in a race.
-//\param $db The connected database.
-//\param $mail Cyclist's mail.
-// \return True on success, false otherwise.
-function dbDeleteCyclistOnRace($db,$mail){
+//Supprime un cycliste de la course
+//\param $db La connexion à la BDD 
+//\param $mail le mail du cycliste
+//\param $id L'identifiant de la course
+// \return Vrais si la suppression est réusie et faux autrement
+function dbDeleteCyclistOnRace($db,$mail,$id){
   try{
-    $request='DELETE FROM participe WHERE mail=:mail';
+    $request='DELETE FROM participe WHERE mail=:mail AND id=:id';
     $statement = $db->prepare($request);
     $statement->bindParam(':mail', $mail, PDO::PARAM_STR);
+    $statement->bindParam(':id', $id, PDO::PARAM_INT);
     $statement->execute();
   }
   catch (PDOException $exception)
@@ -336,6 +370,10 @@ function dbDeleteCyclistOnRace($db,$mail){
     }
     return true;
 }
+
+
+
+
 
 
 ?>
