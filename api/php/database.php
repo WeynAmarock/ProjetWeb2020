@@ -206,11 +206,13 @@ function dbRequestRaces($db){
 //----------------------------------------------------------------------------
 //Retourne le club qui organise la course
 // \param $db La connexion à la BDD.
+// \param $id L'id de la course 
 // \return le nom du club 
-function dbRequestClubRace($db){
+function dbRequestClubRace($db,$id){
   try{
-    $request = 'SELECT club FROM course';
+    $request = 'SELECT club FROM course WHERE id=:id';
     $statement = $db->prepare($request);
+    $statement->bindParam(':id',$id);
     $statement->execute();
     $result = $statement->fetchAll(PDO::FETCH_ASSOC);
   }
@@ -219,7 +221,7 @@ function dbRequestClubRace($db){
     error_log('Request error: '.$exception->getMessage());
     return false;
   }
-  return $result;     
+  return $result[0];     
 }
 
 
@@ -233,17 +235,17 @@ function dbRequestClubRace($db){
 //\param $id L'id de la course 
 //Return Le nom, prenom et mail des cyclistes enregistrés dans la course
 function dbRequestCyclistOnRace($db,$club,$admin,$id){
-  $clubCourse=dbRequestClubRace($db);
+  $clubCourse=dbRequestClubRace($db,$id);
   try{
     $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
         JOIN cycliste cy ON p.mail=cy.mail
         WHERE p.id=:id AND cy.valide=1';
-    if(!$admin && $clubCourse=!$club){
-      $request=$request . 'AND cy.club=:club';
+    if(!$admin && $clubCourse['club']!=$club){
+      $request=$request . ' AND cy.club=:club';
     }
     $statement=$db->prepare($request);
     $statement->bindParam(':id',$id);
-    if(!$admin && $clubCourse=!$club){
+    if(!$admin && $clubCourse['club']!=$club){
       $statement->bindParam(':club',$club);
     }
     $statement->execute();
@@ -348,7 +350,7 @@ function dbAddCyclistOnRace($db,$mail,$id){
 }
 
 //----------------------------------------------------------------------------
-//--- dbDeleteCyclistOnRace ----------------------------------------------------
+//--- dbDeleteCyclistOnRace --------------------------------------------------
 //----------------------------------------------------------------------------
 //Supprime un cycliste de la course
 //\param $db La connexion à la BDD 
@@ -372,8 +374,18 @@ function dbDeleteCyclistOnRace($db,$mail,$id){
 }
 
 
+//----------------------------------------------------------------------------
+//--- dbRequestEndRace --------------------------------------------------
+//----------------------------------------------------------------------------
+/*function dbRequestEndRace($db,$club,$admin){
+  $Today= date("Y/m/d");
+  try{
+    $request='SELECT * FROM course WHERE '
+  }
+}
 
-
+$db=dbConnect();
+dbRequestEndRace($db,'AC GOUESNOU',0);*/
 
 
 ?>
