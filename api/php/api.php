@@ -45,7 +45,20 @@ if($requestRessource=='cyclistes'){
 
         }
     }
-    sendJsonData($data,$requestMethod);
+}
+
+//Si on veut les code INSEE
+if($requestRessource=='code_insee'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCodeInsee($db);
+    }
+}
+
+//Si on veut les code INSEE
+if($requestRessource=='club'){
+    if($requestMethod=='GET'){
+        $data=dbRequestClub($db);
+    }
 }
 
 //Si on veut les courses
@@ -70,6 +83,9 @@ if($requestRessource=='courses'){
         }
     }
 }
+
+
+sendJsonData($data,$requestMethod);
 
 
 
