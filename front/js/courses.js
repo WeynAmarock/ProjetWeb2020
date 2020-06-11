@@ -40,7 +40,7 @@ function affichage(){
 function loadRace(course){
     var parcours = fillRace(course);
     //console.log(parcours);
-    $('#race').append(parcours);
+    $('#race').html(parcours);
 
 }
 
@@ -81,3 +81,18 @@ function fillNonInscrit(coureur){
     var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox"></td></tr>';
     return humain;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////Ajout et Suppression//////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+$('#btnRetour').click(() =>{
+    var inscrit = document.querySelector("#inscrits");
+    var non_inscrit = document.querySelector("#non_inscrits");
+    document.getElementById('content').style.display='block';
+    document.getElementById('content_bis').style.display='none';
+    inscrit.innerHTML = "";
+    non_inscrit.innerHTML = "";
+
+  });
