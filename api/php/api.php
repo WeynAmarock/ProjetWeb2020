@@ -98,7 +98,6 @@ if($requestRessource=='courses'){
         if($id){
             $idCourse=$id[0];
             $mail=substr($id,1);
-            //Le id contient le mail
             $datat=dbDeleteCyclistOnRace($db,$mail,$idCourse); //Pas sûr
         }
     }
