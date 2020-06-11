@@ -38,10 +38,10 @@ if($requestRessource=='cyclistes'){
     if($requestMethod=='PUT'){
         parse_str(file_get_contents('php://input'), $_PUT);
         if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
-                && isset($_PUT['date']) && isset($_PUT['club']) && isset($_PUT['valide'])){  
+                && isset($_PUT['date']) && isset($_PUT['club']) &&  isset($_PUT['code']) && isset($_PUT['valide'])){  
 
             $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['prenom'],
-                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['valide']);
+                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['code'],$_PUT['valide']);
 
         }
     }
@@ -54,8 +54,8 @@ if($requestRessource=='code_insee'){
     }
 }
 
-//Si on veut les code INSEE
-if($requestRessource=='club'){
+//Si on veut les clubs
+if($requestRessource=='clubs'){
     if($requestMethod=='GET'){
         $data=dbRequestClub($db);
     }
@@ -70,14 +70,21 @@ if($requestRessource=='course'){
     }
 }
 
-
 //Si on veut les courses
 if($requestRessource=='courses'){
     if($requestMethod=='GET'){
+        //Dans le cas où on veut toute les courses 
         if(!$id){
             $data=dbRequestRaces($db);
         }else{
-            $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$id);
+            $req=substr($id,0,2); //Variable afin de savoir si on affiche les gens inscrits ou non à la course 
+            $idCourse=$id[2];
+            if($req=='in'){
+                $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }else if($req=='no'){
+                $data=dbRequestCyclistNotOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }
+            
         }        
     }
 
@@ -89,7 +96,10 @@ if($requestRessource=='courses'){
 
     if($requestMethod=='DELETE'){
         if($id){
-            $datat=dbDeleteCyclistOnRace($db,$id); //Pas sûr
+            $idCourse=$id[0];
+            $mail=substr($id,1);
+            //Le id contient le mail
+            $datat=dbDeleteCyclistOnRace($db,$mail,$idCourse); //Pas sûr
         }
     }
 }
