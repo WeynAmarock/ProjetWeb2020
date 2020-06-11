@@ -144,6 +144,29 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide
   return true;
 }
 
+//----------------------------------------------------------------------------
+//--- dbRequestRace ----------------------------------------------------------
+//----------------------------------------------------------------------------
+// Retourne une course 
+// \param $db La connexion à la BDD
+// \return Une course
+function dbRequestRace($db,$id){
+  try{
+    $request='SELECT * FROM course WHERE id=:id';
+    $statement = $db->prepare($request);
+    $statement->bindParam(':id',$id);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;     
+}
+  
+
 
 //----------------------------------------------------------------------------
 //--- dbRequestRaces ---------------------------------------------------------
