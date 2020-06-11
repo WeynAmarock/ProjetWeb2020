@@ -1,49 +1,55 @@
-//Affichage des infos du coureur
-function loadCycliste(coureurs){
-    var cycliste = "";
-
-    coureurs.forEach(coureur =>{
-        // console.table(coureur);
-        cycliste = fillCoureur(coureur);
-        $('#coureurs').append(cycliste);
-    });
-
-}
-
-
-
-function fillCoureur(coureur){
-    var velo = '<tr><td>'+coureur['mail']+'</td><td><input type="text" value="'+coureur['nom']+'"></td><td><input type="text" value="'+coureur['prenom']+'"></td><td><input type="text" value="'+coureur['club']+'"></td><td><input type="text" value="'+coureur['date_naissance']+'"></td><td><input type="text" value="'+coureur['num_licence']+'"></td><td>'+coureur['categorie']+'</td><td>'+coureur['categorie_categorie_valeur']+'</td><td><button class="button" name="btnSub" id="'+coureur['mail']+'">Valider</button></td></tr>'
-    console.log(velo);
-    return velo;
-}
-
 
 ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loadCycliste);
 
 
+//Affichage des infos du coureur
+function loadCycliste(coureurs){
+    var div = document.getElementById('tbody');
+    div.innerHTML='';
+    for(const coureur of coureurs){
+        //console.log(coureur);
+        var element = document.createElement('tr');
+        element.innerHTML=  '<td>'+coureur['mail']+'</td>'
+                            +'<td><input type="text" id="nom_'+coureur['mail']+'" value="'+coureur['nom']+'"></td>'
+                            +'<td><input type="text" name="prenom_'+coureur['mail']+'" value="'+coureur['prenom']+'"></td>'
+                            +'<td><input type="text" name="date_'+coureur['mail']+'" value="'+coureur['date_naissance']+'"></td>'
+                            +'<td><input type="text" name="num_'+coureur['mail']+'" value="'+coureur['num_licence']+'"></td>'
+                            +'<td><input type="text" name="club_'+coureur['mail']+'" value="'+coureur['club']+'"></td>'
+                            +'<td><input type="text" name="valide'+coureur['mail']+'" value="'+coureur['valide']+'"></td>'
+                            +'<td>'+coureur['categorie']+'</td>'
+                            +'<td>'+coureur['categorie_categorie_valeur']+'</td>';
+        div.append(element); 
+    }
+}
 
-// ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/%27', modifyCycliste);
+var element = document.getElementById('Modifier');
+element.onclick=modifierCyclistes;
+
+//ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/', ()=>{},'mail=cl@team.gt & nom=B    & prenom=Louis    & num_licence=695576 & date=0000-00-00 & club=ABC PLOUESCAT & valide=1');
+//mail=dj@taem.com & nom=Cout & prenom=Claude & num_licence='+1234+
+//                       ' & date=2000-5-10 & club=ABC PLOUESCAT    & valide='+1);
+
+function modifierCyclistes(){
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', UdapteCyclistes);
+}
 
 
+//Pas fonctionel 
+function UdapteCyclistes(cyclistes) {
+    for(const cycliste of cyclistes){
 
+        //var ele=document.getElementsByName('prenom_cl@team.gt');
+        //console.log(ele);
 
-var element = document.getElementById('cl@team.gt');
+        var param = 'mail='+cycliste['mail']+' & nom=B & prenom='+cycliste['prenom']+' & num_licence='+cycliste['num_licence']+' & date='+cycliste['date_naissance']+' & club=ABC PLOUESCAT & valide='+cycliste['valide'];
+        console.log(param);
+        ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/',() => {
+ 
+        },param);
+    }
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loadCycliste);
+    alert('Vous avez modifié des informations sur les cyclistes.');
+}
 
-var myFunction = function() {
-    print('Vous avez cliqué !');
-};
-
-element.onclick= ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/%27', myFunction);;
-
-
-
-
-// $('#comment-list').on('click', '.mod', () => {
-// 	ajaxRequest('PUT', 'php/request.php/comments/' + 
-// 		$(event.target).closest('.mod').attr('value'), () => {
-// 			ajaxRequest('GET', 'php/request.php/comments/?id='+$('#photo').attr('photoid'), loadComments);
-// 		}, 'comment=' + prompt('Nouveau commentaire: '));
-// });
 
 
