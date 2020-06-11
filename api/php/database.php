@@ -271,7 +271,7 @@ function dbRequestMailOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT p.mail FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id AND c.valide=1';
     if(!$admin){
-      $request=$request . 'AND c.club=:club';
+      $request=$request . ' AND c.club=:club';
     }
     $statement=$db->prepare($request);
     $statement->bindParam(':id',$id);
@@ -303,13 +303,14 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT nom, prenom, mail FROM cycliste WHERE valide=1';
     foreach($mails as $mail){
+      echo $mail['mail'];
         $request=$request.' AND mail!=\''.$mail['mail'].'\'';
     }
+    //echo $request;
     if(!$admin){
       $request=$request . ' AND club=:club';
     }
     $statement=$db->prepare($request);
-    echo $request;
     if(!$admin){
       $statement->bindParam(':club',$club);
     }
@@ -323,6 +324,7 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
   }
     return $result;
 }
+
 
 //----------------------------------------------------------------------------
 //--- dbAddCyclisteOnRace ----------------------------------------------------
@@ -375,17 +377,33 @@ function dbDeleteCyclistOnRace($db,$mail,$id){
 
 
 //----------------------------------------------------------------------------
-//--- dbRequestEndRace --------------------------------------------------
+//--- dbRequestEndingRace --------------------------------------------------
 //----------------------------------------------------------------------------
-/*function dbRequestEndRace($db,$club,$admin){
-  $Today= date("Y/m/d");
+function dbRequestEndingRace($db,$club,$admin){
+  $today= date("Y-m-d");
   try{
-    $request='SELECT * FROM course WHERE '
+    $request='SELECT * FROM course WHERE date>'.$today;
+    if(!$admin){
+      $request=$request.' AND club=:club';
+    }
+    $statement = $db->prepare($request);
+    if($admin){
+      $statement->bindParam(':club',$club,PDO::PARAM_STR);
+    }
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
   }
+  catch (PDOException $exception)
+    {
+      error_log('Request error: '.$exception->getMessage());
+      return false;
+    }
+    return $result;
 }
 
-$db=dbConnect();
-dbRequestEndRace($db,'AC GOUESNOU',0);*/
+/*$db=dbConnect();
+$test=dbRequestEndingRace($db,'AC GOUESNOU',0);
+var_dump($test);*/
 
 
 ?>
