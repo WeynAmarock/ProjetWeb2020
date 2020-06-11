@@ -21,12 +21,12 @@ function fillCourse(course){
 
 
 $('#courses').on('click', 'button', () => {
-    console.log($(event.target).attr('value'));
+    //console.log($(event.target).attr('value'));
     var id = $(event.target).attr('value');
     affichage();
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/course/'+id, loadRace);
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in1', loadCoureurInscrit);
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no1', loadCoureurNonInscrit);
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, loadCoureurInscrit);
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no'+id, loadCoureurNonInscrit);
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ function affichage(){
 
 function loadRace(course){
     var parcours = fillRace(course);
-    console.log(parcours);
+    //console.log(parcours);
     $('#race').append(parcours);
 
 }
@@ -55,7 +55,7 @@ function fillRace(course){
 function loadCoureurInscrit(cyclistes){
     var humain = "";
     cyclistes.forEach(coureur =>{
-        console.table(coureur);
+        //console.table(coureur);
         humain = fillInscrit(coureur);
         $('#inscrits').append(humain);
     });
@@ -71,7 +71,7 @@ function fillInscrit(coureur){
 function loadCoureurNonInscrit(cyclistes){
     var humain = "";
     cyclistes.forEach(coureur =>{
-        console.table(coureur);
+        //console.table(coureur);
         humain = fillNonInscrit(coureur);
         $('#non_inscrits').append(humain);
     });
