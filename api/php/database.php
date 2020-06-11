@@ -76,14 +76,56 @@ function dbRequestCyclistes($db,$club,$admin){
   return $result;     
 }
 
+//----------------------------------------------------------------------------
+//--- dbRequestCodeInsee -----------------------------------------------------
+//----------------------------------------------------------------------------
+//Retourne tout les codes INSEE 
+//\parma $db La connexion à la BDD
+//\return La liste des code INSEE
+function dbRequestCodeInsee($db){
+  try{
+    $request='SELECT code_insee FROM ville';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;  
+}
+
+//----------------------------------------------------------------------------
+//--- dbRequestClub -----------------------------------------------------
+//----------------------------------------------------------------------------
+//Retourne tout les clubs
+//\parma $db La connexion à la BDD
+//\return La liste des clubs
+function dbRequestClub($db){
+  try{
+    $request='SELECT club FROM club';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;  
+}
+
+
 //Code Insee non fonctionnel
-function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$valide,$club,$code_insee){
+function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$code_insee,$valide){
   try{
     $request = 'UPDATE cycliste SET nom=:nom, prenom=:prenom, num_licence=:num_licence,
           date_naissance=:date, valide=:valide, club=:club, code_insee=:code_insee
           WHERE mail=:mail';
     $statement = $db->prepare($request);
-    //$statement->bindParam(':new_mail', $new_mail, PDO::PARAM_STR, 255);
     $statement->bindParam(':mail', $mail, PDO::PARAM_STR, 255);
     $statement->bindParam(':nom', $nom, PDO::PARAM_STR, 100);
     $statement->bindParam(':prenom', $prenom, PDO::PARAM_STR, 100);
@@ -91,7 +133,7 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$valide,$club
     $statement->bindParam(':date', $date, PDO::PARAM_STR);
     $statement->bindParam(':valide', $valide, PDO::PARAM_BOOL);
     $statement->bindParam(':club', $club, PDO::PARAM_STR,255);
-    //$statement->bindParam(':code_insee', $code_insee, PDO::PARAM_INT);
+    $statement->bindParam(':code_insee', $code_insee, PDO::PARAM_INT);
     $statement->execute();
   }
   catch (PDOException $exception)
@@ -101,6 +143,7 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$valide,$club
   }
   return true;
 }
+
 
 //----------------------------------------------------------------------------
 //--- dbRequestRaces ---------------------------------------------------------
@@ -123,22 +166,73 @@ function dbRequestRaces($db){
   return $result;     
 }
 
+
+function dbRequestClubRace($db){
+  try{
+    $request = 'SELECT club FROM course';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;     
+}
+
+
 //----------------------------------------------------------------------------
 //--- dbRequestCyclistOnRace -------------------------------------------------
 //----------------------------------------------------------------------------
-//Get the name of the cyclist in the race
+//Get the name and the mail of the cyclist in the race 
 //\param $db The connected database.
 //\param $club The cyclists club
 //\param $admin True if the user is a admin
 //\param $id Id of the race
-//Return the name and the mail of cyclists registered in the race  
+//Return the name and the mail of cyclists registered in the race
 function dbRequestCyclistOnRace($db,$club,$admin,$id){
+  $clubCourse=dbRequestClubRace($db);
   try{
     $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
-        JOIN cycliste cy ON p.mail=cy.mail 
-        WHERE p.id=:id ';
-    if(!$admin){
+        JOIN cycliste cy ON p.mail=cy.mail
+        JOIN
+        WHERE p.id=:id AND cy.valide=1';
+    if(!$admin && $clubCourse=!$club){
       $request=$request . 'AND cy.club=:club';
+    }
+    $statement=$db->prepare($request);
+    $statement->bindParam(':id',$id);
+    if(!$admin && $clubCourse=!$club){
+      $statement->bindParam(':club',$club);
+    }
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+    return $result;     
+}
+
+//----------------------------------------------------------------------------
+//--- dbRequestMailOnRace -------------------------------------------------
+//----------------------------------------------------------------------------
+//Get the mail of the cyclist in the race Id
+//Get the name and the mail of the cyclist in the race Id
+//\param $db The connected database.
+//\param $club The cyclists club
+//\param $admin True if the user is a admin
+//\param $id Id of the race
+//Return the mail of cyclists registered in the race Id
+function dbRequestMailOnRace($db,$club,$admin,$id){
+  try{
+    $request='SELECT p.mail FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id AND c.valide=1';
+    if(!$admin){
+      $request=$request . 'AND c.club=:club';
     }
     $statement=$db->prepare($request);
     $statement->bindParam(':id',$id);
@@ -156,6 +250,7 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
     return $result;     
 }
 
+
 //----------------------------------------------------------------------------
 //--- dbRequestCyclistNotOnRace -------------------------------------------------
 //----------------------------------------------------------------------------
@@ -166,13 +261,17 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
 //\param $id Id of the race
 //Return the name of cyclists who are not registered in the race  
 function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
+  $mails=dbRequestMailOnRace($db,$club,$admin,$id);
   try{
-    $request='SELECT mail FROM participe WHERE p.id=:id ';
+    $request='SELECT nom, prenom, mail FROM cycliste WHERE valide=1';
+    foreach($mails as $mail){
+        $request=$request.' AND mail!=\''.$mail['mail'].'\'';
+    }
     if(!$admin){
-      $request=$request . 'AND cy.club=:club';
+      $request=$request . ' AND club=:club';
     }
     $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id);
+    echo $request;
     if(!$admin){
       $statement->bindParam(':club',$club);
     }
@@ -232,22 +331,6 @@ function dbDeleteCyclistOnRace($db,$mail){
       return false;
     }
     return true;
-}
-
-
-
-
-
-
-$db = dbConnect();
-
-$test=dbRequestCyclistNotOnRace($db,NULL,1,1);
-
-
-//var_dump($test);
-
-foreach($test as $t){
-  echo $t["nom"].'</br>';
 }
 
 
