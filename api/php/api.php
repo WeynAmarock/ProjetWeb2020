@@ -67,7 +67,7 @@ if($requestRessource=='courses'){
         if(!$id){
             $data=dbRequestRaces($db);
         }else{
-            $req=substr($id,0,2);
+            $req=substr($id,0,2); //Variable afin de savoir si on affiche les gens inscrits ou non à la course 
             $idCourse=$id[2];
             if($req=='in'){
                 $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
@@ -86,6 +86,7 @@ if($requestRessource=='courses'){
 
     if($requestMethod=='DELETE'){
         if($id){
+            //Le id contient le mail
             $datat=dbDeleteCyclistOnRace($db,$id); //Pas sûr
         }
     }
