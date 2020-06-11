@@ -1,7 +1,6 @@
 <?php
 
 require_once('database.php');
-require_once('Class/user.php');
 
 //Connexion à la base de donnéee
 $db= dbConnect();
@@ -21,6 +20,12 @@ $request = substr($_SERVER['PATH_INFO'], 1);
 $request = explode('/', $request);
 $requestRessource = array_shift($request);
 
+if ($requestMethod == 'OPTIONS')
+{
+header('HTTP/1.1 200 OK');
+exit;
+}
+
 //On récupère l'id dans l'URL
 $id= array_shift($request); //id du commentaire
 if ($id == '')    $id= NULL;
@@ -30,11 +35,64 @@ if($requestRessource=='cyclistes'){
     if($requestMethod=='GET'){
         $data=dbRequestCyclistes($db,$user->getClub(),$user->getAdmin());
     }
+    if($requestMethod=='PUT'){
+        parse_str(file_get_contents('php://input'), $_PUT);
+        if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
+                && isset($_PUT['date']) && isset($_PUT['club']) &&  isset($_PUT['code']) && isset($_PUT['valide'])){  
 
-    sendJsonData($data,'GET');
+            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['prenom'],
+                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['code'],$_PUT['valide']);
+
+        }
+    }
+}
+
+//Si on veut les code INSEE
+if($requestRessource=='code_insee'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCodeInsee($db);
+    }
+}
+
+//Si on veut les clubs
+if($requestRessource=='clubs'){
+    if($requestMethod=='GET'){
+        $data=dbRequestClub($db);
+    }
+}
+
+//Si on veut les courses
+if($requestRessource=='courses'){
+    if($requestMethod=='GET'){
+        if(!$id){
+            $data=dbRequestRaces($db);
+        }else{
+            $req=substr($id,0,2);
+            $idCourse=$id[2];
+            if($req=='in'){
+                $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }else if($req=='no'){
+                $data=dbRequestCyclistNotOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }
+            
+        }        
+    }
+
+    if($requestMethod=='POST'){
+        if (isset($_POST['id']) && isset($_POST['mail'])) {
+            $data=dbAddCyclistOnRace($db,$_POST['mail'],$_POST['id']);
+        }
+    }
+
+    if($requestMethod=='DELETE'){
+        if($id){
+            $datat=dbDeleteCyclistOnRace($db,$id); //Pas sûr
+        }
+    }
 }
 
 
+sendJsonData($data,$requestMethod);
 
 
 
