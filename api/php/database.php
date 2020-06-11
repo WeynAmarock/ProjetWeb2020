@@ -119,7 +119,6 @@ function dbRequestClub($db){
 }
 
 
-//Code Insee non fonctionnel
 function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$code_insee,$valide){
   try{
     $request = 'UPDATE cycliste SET nom=:nom, prenom=:prenom, num_licence=:num_licence,
@@ -197,7 +196,6 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
         JOIN cycliste cy ON p.mail=cy.mail
-        JOIN
         WHERE p.id=:id AND cy.valide=1';
     if(!$admin && $clubCourse=!$club){
       $request=$request . 'AND cy.club=:club';
