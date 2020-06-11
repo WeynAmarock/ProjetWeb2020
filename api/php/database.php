@@ -303,10 +303,8 @@ function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
   try{
     $request='SELECT nom, prenom, mail FROM cycliste WHERE valide=1';
     foreach($mails as $mail){
-      echo $mail['mail'];
         $request=$request.' AND mail!=\''.$mail['mail'].'\'';
     }
-    //echo $request;
     if(!$admin){
       $request=$request . ' AND club=:club';
     }
