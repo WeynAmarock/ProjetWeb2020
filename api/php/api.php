@@ -64,7 +64,7 @@ if($requestRessource=='club'){
 //Si on veut une course 
 if($requestRessource=='course'){
     if($requestMethod=='GET'){
-        if(!$id){
+        if($id){
             $data=dbRequestRace($db,$id);
         }
     }
