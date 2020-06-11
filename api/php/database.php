@@ -76,6 +76,49 @@ function dbRequestCyclistes($db,$club,$admin){
   return $result;     
 }
 
+//----------------------------------------------------------------------------
+//--- dbRequestCodeInsee -----------------------------------------------------
+//----------------------------------------------------------------------------
+//Retourne tout les codes INSEE 
+//\parma $db La connexion à la BDD
+//\return La liste des code INSEE
+function dbRequestCodeInsee($db){
+  try{
+    $request='SELECT code_insee FROM ville';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;  
+}
+
+//----------------------------------------------------------------------------
+//--- dbRequestClub -----------------------------------------------------
+//----------------------------------------------------------------------------
+//Retourne tout les clubs
+//\parma $db La connexion à la BDD
+//\return La liste des clubs
+function dbRequestClub($db){
+  try{
+    $request='SELECT club FROM club';
+    $statement = $db->prepare($request);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+  {
+    error_log('Request error: '.$exception->getMessage());
+    return false;
+  }
+  return $result;  
+}
+
+
 //Code Insee non fonctionnel
 function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide){
   try{
@@ -100,7 +143,6 @@ function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$valide
   }
   return true;
 }
-
 
 
 //----------------------------------------------------------------------------
