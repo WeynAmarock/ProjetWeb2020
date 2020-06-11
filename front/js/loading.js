@@ -7,10 +7,16 @@ ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes', loa
 //Affichage des infos du coureur
 function loadCycliste(coureurs){
     var div = document.getElementById('tbody');
+    var valide='';
     if(div != null){
         div.innerHTML='';
         for(const coureur of coureurs){
             //console.log(coureur);
+            if(coureur['valide']){
+                valide='<option required>1</option> <option>0</option>';
+            }else{
+               valide='<option required>0</option> <option>1</option>';
+            }
             var element = document.createElement('tr');
             element.innerHTML=  '<td>'+coureur['mail']+'</td>'
                             +'<td><input required type="text" id="nom_'+coureur['mail']+'" value="'+coureur['nom'].trim()+'"></td>'
@@ -19,10 +25,10 @@ function loadCycliste(coureurs){
                             +'<td><input required type="text" id="num_'+coureur['mail']+'" value="'+coureur['num_licence']+'"></td>'
                             +'<td> <select id="club_'+coureur['mail']+'"><option selected>'+coureur['club'].trim()+'</option> </select> </td>'
                             +'<td> <select id="code_'+coureur['mail']+'"><option selected>'+coureur['code_insee'].trim()+'</option> </select> </td>'
-                            +'<td><input required type="text" id="valide_'+coureur['mail']+'" value="'+coureur['valide']+'"></td>'
+                            +'<td> <select id="valide_'+coureur['mail']+'">'+valide+'</select> </td>'
                             +'<td>'+coureur['categorie']+'</td>'
                             +'<td>'+coureur['categorie_categorie_valeur']+'</td>';
-
+                              
             ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/clubs', (clubs)=>{
                 for(const club of clubs){
                     var c=document.getElementById('club_'+coureur['mail']);
@@ -75,9 +81,8 @@ function UdapteCyclistes(cyclistes) {
         var valide=document.getElementById('valide_'+cycliste['mail']).value;
         
         var param = 'mail='+cycliste['mail']+' & nom='+nom+' & prenom='+prenom+' & num_licence='+num+' & date='+date+' & club='+club+' & code='+code+' & valide='+valide;
-        console.log(param);
         ajaxRequest('PUT', 'http://prj-cir2-web-api.monposte/php/api.php/cyclistes/',() => {
- 
+
         },param);
     }
     alert('Vous avez modifié des informations sur les cyclistes.');
