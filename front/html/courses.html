@@ -37,18 +37,23 @@
         <div id="content" style="display: block;">
             <h1>Liste des courses</h1>
             <section>
-                    <table id="courses" class="table table-stripped">
-                        <tr>
-                            <th>Id </th>
-                            <th>Libelle</th>
-                            <th>Date</th>
-                            <th>Nombre de tour</th>
-                            <th>Distance</th>
-                            <th>Nombre coureurs</th>
-                            <th>Longueur du Tour</th>
-                            <th>Club</th>
-                        </tr>
-                        
+                    <table  class="table table-stripped">
+                        <thead>
+                            <tr>
+                                <th>Id </th>
+                                <th>Libelle</th>
+                                <th>Date</th>
+                                <th>Nombre de tour</th>
+                                <th>Distance</th>
+                                <th>Nombre coureurs</th>
+                                <th>Longueur du Tour</th>
+                                <th>Club</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="courses">
+
+                        </tbody>
                     </table>
                     <!-- <button type="button" id="btnCourse" class="button">Modifier</button> -->
                     
@@ -87,7 +92,7 @@
                     </tbody>
                 </table>
                 <h2>Coureurs non inscrits</h2>
-                <table id="non_inscrits" class="table table-stripped">
+                <table class="table table-stripped">
                     <thead>
                         <tr>
                             <th>Nom </th>
