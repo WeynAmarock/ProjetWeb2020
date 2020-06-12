@@ -32,7 +32,11 @@ if ($id == '')    $id= NULL;
 
 //Si on veut le user
 if($requestRessource=='user'){
-    //$data={"nom":$user->getNom(),"prenom":$user,"mail":$user->getMail()};
+    $data=[
+        "nom"=>$user->getnom(),
+        "prenom"=>$user->getPrenom(),
+        "mail"=>$user->getMail(),
+    ];
 }
 
 
@@ -120,9 +124,9 @@ if($requestRessource=='classement'){
 }
 
 //Si nous voulons la vitesse 
-if($request=='vitesse'){
+if($requestRessource=='vitesse'){
     if($requestMethod=='GET'){
-        if($id){
+        if($id){       
             $data=dbRequestVitesse($db,$id);
         }
     }
