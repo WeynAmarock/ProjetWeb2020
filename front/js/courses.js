@@ -141,9 +141,9 @@ $('#btnCourse').click(() =>{
 
 function addCoureur(id, mail){
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, (coureurs)=>{
-        // console.log(coureurs);
+        
+        
         var i = 0;
-            i = 0;
             coureurs.forEach(coureur =>{
                 // ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, );
                 if(mail == coureur['mail']){
@@ -173,12 +173,12 @@ function supprCoureur(id, mail){
                     i++;
                 }
             });
-            console.log('i :'+i);
+            //console.log('i :'+i);
             if(i){
-                console.log('testsuppr');
-                ajaxRequest('DELETE', 'http://prj-cir2-web-api.monposte/php/api.php/courses/', ()=>{
+                //console.log('testsuppr');
+                ajaxRequest('DELETE', 'http://prj-cir2-web-api.monposte/php/api.php/courses/'+id+mail, ()=>{
                     // console.log('test.Ajout');
-                },'id='+id+' & mail='+mail);
+                });
             }
             else{
                 ////////////////////////////////////
