@@ -26,11 +26,16 @@ function loadCourse(courses){
 $('#course_content').on('click', 'button', () => {
     var id = $(event.target).attr('id');
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/classement/'+id, loadClassement);
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/vitesse/'+id,(vitesse)=>{
-        var div1=document.getElementById('vitesse');
-        div1.innerHTML('Temps indicatif du premier'+vitesse);
-    });
+    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/vitesse/'+id,afficheVitesse);
 });
+
+function afficheVitesse(vitesse){
+    var div1=document.getElementById('vitesse');
+    div1.innerHTML='';
+    var element=document.createElement('h3');
+    element.innerHTML='Temps indicatif du premier du classement : '+vitesse+'km/h ';
+    div1.append(element);
+}
 
 function loadClassement(cyclistes){
     affichageClassement();
