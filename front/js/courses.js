@@ -4,6 +4,7 @@ ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses', loadC
 
 function loadCourse(courses){
     var parcours = "";
+    $('#courses').innerHTML='';
     
     courses.forEach(course =>{
         // console.table(coureur);
@@ -31,10 +32,11 @@ $('#courses').on('click', 'button', () => {
 //#-----------------Affichage des données de la course selectionnée-----------------#//
 //#---------------------------------------------------------------------------------#// 
 function display(id){
-    var inscrit = document.querySelector("#inscrits");
-    var non_inscrit = document.querySelector("#non_inscrits");
+    var inscrit = document.getElementById('inscrits');
+    var non_inscrit = document.getElementById('non_inscrits');
     inscrit.innerHTML = "";
     non_inscrit.innerHTML = "";
+    console.log(inscrit);
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/course/'+id, loadRace);
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, loadCoureurInscrit);
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no'+id, loadCoureurNonInscrit);
@@ -46,14 +48,12 @@ function affichage(){
 
 function loadRace(course){
     var parcours = fillRace(course);
-    //console.log(parcours);
     $('#race').html(parcours);
 
 }
 
 function fillRace(course){
     var chemin = '<tr id="course_selected" value="'+course['id']+'"><th>'+course['id']+'</th><td>'+course['libelle']+'</td><td>'+course['date']+'</td><td>'+course['nb_tour']+'</td><td>'+course['distance']+'</td><td>'+course['nb_coureur']+'</td><td>'+course['longueur_tour']+'</td><td>'+course['club']+'</td></tr>';
-    //console.log(chemin);
     return chemin;
 }
 
@@ -63,8 +63,8 @@ function fillRace(course){
 
 function loadCoureurInscrit(cyclistes){
     var humain = "";
+    $('#inscrits').innerHTML='';
     cyclistes.forEach(coureur =>{
-        //console.table(coureur);
         humain = fillInscrit(coureur);
         $('#inscrits').append(humain);
     });
@@ -80,7 +80,6 @@ function fillInscrit(coureur){
 function loadCoureurNonInscrit(cyclistes){
     var humain = "";
     cyclistes.forEach(coureur =>{
-        //console.table(coureur);
         humain = fillNonInscrit(coureur);
         $('#non_inscrits').append(humain);
     });
@@ -113,24 +112,12 @@ $('#btnRetour').click(() =>{
 $('#btnCourse').click(() =>{
     
     var id = $('#course_selected').attr('value');
-    // console.log(id);
-    var mails = Array();
-    var i = 0;
-    
-    
     $('input[type=checkbox]').each(function () {
         if (this.checked) {
-            mails[i] = $(this).attr('id');
-            addCoureur(id, mails[i]);
-            i++;
-            
+            addCoureur(id,$(this).attr('id'));
         }
         else{
-            mails[i] = $(this).attr('id');
-            console.log(mails[i]);
-            supprCoureur(id, mails[i]);
-            i++;
-            
+            supprCoureur(id, $(this).attr('id'));        
         }
     });
     
@@ -141,49 +128,43 @@ $('#btnCourse').click(() =>{
 
 function addCoureur(id, mail){
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, (coureurs)=>{
-        
-        
-        var i = 0;
+        // console.log(coureurs);
+        if(coureurs=='vide'){
+            ajaxRequest('POST', 'http://prj-cir2-web-api.monposte/php/api.php/courses/', ()=>{
+                    console.log('test.Ajout');
+                },'id='+id+' & mail='+mail);
+        }else{
+            var i = 0;
             coureurs.forEach(coureur =>{
-                // ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, );
                 if(mail == coureur['mail']){
                     i++;
                 }
             });
             if(i == 0){
-                // console.log(mail,'Pas inscrit');
                 ajaxRequest('POST', 'http://prj-cir2-web-api.monposte/php/api.php/courses/', ()=>{
-                    // console.log('test.Ajout');
+                    //console.log('test.Ajout');
                 },'id='+id+' & mail='+mail);
             }
-            else{
-                // console.log('Coureur déjà inscrit');
-            }
+        }
+        
     });
 
 }
 
 function supprCoureur(id, mail){
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, (coureurs)=>{
-        // console.log(coureurs);
-        var i = 0;
-            i = 0;
+        if(coureurs!='vide'){
+            var i = 0;
             coureurs.forEach(coureur =>{
                 if(mail == coureur['mail']){
                     i++;
                 }
             });
-            //console.log('i :'+i);
             if(i){
-                //console.log('testsuppr');
                 ajaxRequest('DELETE', 'http://prj-cir2-web-api.monposte/php/api.php/courses/'+id+mail, ()=>{
-                    // console.log('test.Ajout');
                 });
             }
-            else{
-                ////////////////////////////////////
-            }
+        }  
     });
-
 }
 
