@@ -8,6 +8,18 @@ h1{
     color : black;
     padding-bottom: 50px;
 }
+h2{
+    font-size: 1.7em;
+}
+
+#co{
+    font-size : 1.2em;
+    text-align : right;
+    background-color: rgb(235, 203, 46);
+    margin-top : -20px;
+    padding-right : 20px;
+    color : rgb(88,88,88);
+}
 
 body{
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
@@ -102,12 +114,7 @@ input[type="checkbox"]:checked {
     background: rgb(235, 203, 46);
     margin:0px;
     position: relative;
-    &:before {
-      font-family: FontAwesome;
-      content: '\f00c';
-      display: block;
-      color: grey;
-      font-size: 13px;
-      position: absolute;
-    }
+    
   }
+
+  
