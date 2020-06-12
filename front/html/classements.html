@@ -5,7 +5,7 @@
         <title>Classements</title>
         <!-- Scripts JS -->
         <script type="text/javascript" src= "../js\ajax.js" defer></script>
-        <script type="text/javascript" src= "../js\loading.js" defer></script>
+        <script type="text/javascript" src= "../js\classement.js" defer></script>
         <!-- Fichiers CSS -->
         <link type="text/css" rel="stylesheet" href="../css/header.css">
         <link type="text/css" rel="stylesheet" href="../css/main.css">
@@ -37,6 +37,54 @@
         </div>
         <div id="contenu">
             <h1>Classements</h1>
+            <section id='course'>
+                <div id='vitesse'></div>
+                <table id='tab_courses' class="table table-stripped">
+                    <thead>
+                        <tr>
+                            <th>Id </th>
+                            <th>Libelle</th>
+                            <th>Date</th>
+                            <th>Nombre de tour</th>
+                            <th>Distance</th>
+                            <th>Nombre coureurs</th>
+                            <th>Longueur du Tour</th>
+                            <th>Club</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id='course_content'>
+
+                    </tbody>
+
+                </table>
+            </section>
+     
+
+            <section id='classement'>
+                <div id=vitesse ></div><h3 ></h2>
+                <table id='tab_classement' class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Place</th>
+                            <th>Dossard</th>
+                            <th>Nom</th>
+                            <th>Prenom</th>
+                            <th>Club</th>
+                            <th>Licence</th>
+                            <th>Categorie</th>
+                            <th>Categorie valeur</th>
+                            <th>Point</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id='classement_content'>
+
+                    </tbody>
+                </table>
+                <button type="button" class="button" id='Retour'>Retour</button>
+            </section>
+            
         </div>
         <footer>
             <hr id="grey_hr">
