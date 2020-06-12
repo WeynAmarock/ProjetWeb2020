@@ -1,189 +1,154 @@
-//Pour les informations de course
+<?php
 
-ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses', loadCourse);
+require_once('database.php');
 
-function loadCourse(courses){
-    var parcours = "";
-    
-    courses.forEach(course =>{
-        // console.table(coureur);
-        parcours = fillCourse(course);
-        $('#courses').append(parcours);
-    });
-
+//Connexion à la base de donnéee
+$db= dbConnect();
+if($db == false){
+    header('HTTP/1.1 503 Service Unavailable');
+    exit;
 }
 
-function fillCourse(course){
-    var chemin = '<tr><th>'+course['id']+'</th><td>'+course['libelle']+'</td><td>'+course['date']+'</td><td>'+course['nb_tour']+'</td><td>'+course['distance']+'</td><td>'+course['nb_coureur']+'</td><td>'+course['longueur_tour']+'</td><td>'+course['club']+'</td><td><button class="button" name="bouton" value='+course['id']+' id="'+course['id']+'">Voir +</button></td></tr>';
-    //console.log(chemin);
-    return chemin;
+// Création d'un user
+//C'est içi que l'on place en dur le mail du user
+$mailUser = 'mccall@serie.fr';
+$user=dbCreateUser($db,$mailUser);
+
+// On récupère la requete de ajax.js
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$request = substr($_SERVER['PATH_INFO'], 1);
+$request = explode('/', $request);
+$requestRessource = array_shift($request);
+
+if ($requestMethod == 'OPTIONS')
+{
+header('HTTP/1.1 200 OK');
+exit;
 }
 
+//On récupère l'id dans l'URL
+$id= array_shift($request); //id du commentaire
+if ($id == '')    $id= NULL;
 
-$('#courses').on('click', 'button', () => {
-    //console.log($(event.target).attr('value'));
-    var id = $(event.target).attr('value');
-    affichage();
-    display(id)
-});
-
-//#---------------------------------------------------------------------------------#//
-//#-----------------Affichage des données de la course selectionnée-----------------#//
-//#---------------------------------------------------------------------------------#// 
-function display(id){
-    var inscrit = document.querySelector("#inscrits");
-    var non_inscrit = document.querySelector("#non_inscrits");
-    inscrit.innerHTML = "";
-    non_inscrit.innerHTML = "";
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/course/'+id, loadRace);
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, loadCoureurInscrit);
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no'+id, loadCoureurNonInscrit);
-}
-function affichage(){
-    document.getElementById('content').style.display='none';
-    document.getElementById('content_bis').style.display='block';
-}
-
-function loadRace(course){
-    var parcours = fillRace(course);
-    //console.log(parcours);
-    $('#race').html(parcours);
-
-}
-
-function fillRace(course){
-    var chemin = '<tr id="course_selected" value="'+course['id']+'"><th>'+course['id']+'</th><td>'+course['libelle']+'</td><td>'+course['date']+'</td><td>'+course['nb_tour']+'</td><td>'+course['distance']+'</td><td>'+course['nb_coureur']+'</td><td>'+course['longueur_tour']+'</td><td>'+course['club']+'</td></tr>';
-    //console.log(chemin);
-    return chemin;
-}
-
-//#---------------------------------------------------------------------------------#//
-//#----------Chargement et récupération des coureurs inscrits/non-inscrits----------#//
-//#---------------------------------------------------------------------------------#// 
-
-function loadCoureurInscrit(cyclistes){
-    var humain = "";
-    cyclistes.forEach(coureur =>{
-        //console.table(coureur);
-        humain = fillInscrit(coureur);
-        $('#inscrits').append(humain);
-    });
-}
-
-function fillInscrit(coureur){
-    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td class="mail">'+coureur['mail']+'</td><td><input type="checkbox" id="'+coureur['mail']+'" checked></td></tr>';
-    return humain;
-}
-
-//#---------------------------------------------------------------------------------#//
-
-function loadCoureurNonInscrit(cyclistes){
-    var humain = "";
-    cyclistes.forEach(coureur =>{
-        //console.table(coureur);
-        humain = fillNonInscrit(coureur);
-        $('#non_inscrits').append(humain);
-    });
-}
-
-function fillNonInscrit(coureur){
-    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox" id="'+coureur['mail']+'"></td></tr>';
-    return humain;
+//Si on veut le user
+if($requestRessource=='user'){
+    //$data={"nom":$user->getNom(),"prenom":$user,"mail":$user->getMail()};
 }
 
 
-//#---------------------------------------------------------------------------------#//
-//#----------------------------------Bouton Retour----------------------------------#//
-//#---------------------------------------------------------------------------------#// 
+//Si on veut les cyclistes
+if($requestRessource=='cyclistes'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCyclistes($db,$user->getClub(),$user->getAdmin());
+    }
+    if($requestMethod=='PUT'){
+        parse_str(file_get_contents('php://input'), $_PUT);
+        if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
+                && isset($_PUT['date']) && isset($_PUT['club']) &&  isset($_PUT['code']) && isset($_PUT['valide'])){  
 
-$('#btnRetour').click(() =>{
-    var inscrit = document.querySelector("#inscrits");
-    var non_inscrit = document.querySelector("#non_inscrits");
-    document.getElementById('content').style.display='block';
-    document.getElementById('content_bis').style.display='none';
-    inscrit.innerHTML = "";
-    non_inscrit.innerHTML = "";
+            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['prenom'],
+                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['code'],$_PUT['valide']);
 
-  });
-
-//#---------------------------------------------------------------------------------#//
-//#-----------------------Ajout Suppression des inscriptions------------------------#//
-//#---------------------------------------------------------------------------------#// 
-
-$('#btnCourse').click(() =>{
-    
-    var id = $('#course_selected').attr('value');
-    // console.log(id);
-    var mails = Array();
-    var i = 0;
-    
-    
-    $('input[type=checkbox]').each(function () {
-        if (this.checked) {
-            mails[i] = $(this).attr('id');
-            addCoureur(id, mails[i]);
-            i++;
-            
         }
-        else{
-            mails[i] = $(this).attr('id');
-            console.log(mails[i]);
-            supprCoureur(id, mails[i]);
-            i++;
-            
-        }
-    });
-    
-    display(id);
-
-});
-
-
-function addCoureur(id, mail){
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, (coureurs)=>{
-        // console.log(coureurs);
-        var i = 0;
-            i = 0;
-            coureurs.forEach(coureur =>{
-                // ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, );
-                if(mail == coureur['mail']){
-                    i++;
-                }
-            });
-            if(i == 0){
-                // console.log(mail,'Pas inscrit');
-                ajaxRequest('POST', 'http://prj-cir2-web-api.monposte/php/api.php/courses/', ()=>{
-                    // console.log('test.Ajout');
-                },'id='+id+' & mail='+mail);
-            }
-            else{
-                // console.log('Coureur déjà inscrit');
-            }
-    });
-
+    }
 }
 
-function supprCoureur(id, mail){
-    ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/in'+id, (coureurs)=>{
-        // console.log(coureurs);
-        var i = 0;
-            i = 0;
-            coureurs.forEach(coureur =>{
-                if(mail == coureur['mail']){
-                    i++;
-                }
-            });
-            console.log('i :'+i);
-            if(i){
-                console.log('testsuppr');
-                ajaxRequest('DELETE', 'http://prj-cir2-web-api.monposte/php/api.php/courses/', ()=>{
-                    // console.log('test.Ajout');
-                },'id='+id+' & mail='+mail);
-            }
-            else{
-                ////////////////////////////////////
-            }
-    });
+//Si on veut les code INSEE
+if($requestRessource=='code_insee'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCodeInsee($db);
+    }
+}
 
+//Si on veut les clubs
+if($requestRessource=='clubs'){
+    if($requestMethod=='GET'){
+        $data=dbRequestClub($db);
+    }
+}
+
+//Si on veut une course 
+if($requestRessource=='course'){
+    if($requestMethod=='GET'){
+        if($id){
+            $data=dbRequestRace($db,$id);
+        }
+    }
+}
+
+//Si on veut les courses
+if($requestRessource=='courses'){
+    if($requestMethod=='GET'){
+        //Dans le cas où on veut toute les courses 
+        if(!$id){
+            $data=dbRequestRaces($db);
+        }else{
+            $req=substr($id,0,2); //Variable afin de savoir si on affiche les gens inscrits ou non à la course 
+            $idCourse=$id[2];
+            if($req=='in'){//Nous voulons les cyclistes qui participent à la course
+                $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }else if($req=='no'){//Nous voulons les cyclistes qui ne participent pas à la course
+                $data=dbRequestCyclistNotOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }
+            
+        }        
+    }
+    if($requestMethod=='POST'){
+        if (isset($_POST['id']) && isset($_POST['mail'])) {
+            $data=dbAddCyclistOnRace($db,$_POST['mail'],$_POST['id']);
+        }
+    }
+    if($requestMethod=='DELETE'){
+        if($id){
+            //Le id est de la forme idcourseMail
+            $idCourse=$id[0];
+            $mail=substr($id,1);
+            $data=dbDeleteCyclistOnRace($db,$mail,$idCourse); //Pas sûr
+        }
+    }
+}
+
+//Si nous voulons les classements 
+if($requestRessource=='classement'){
+    if($requestMethod=='GET'){
+        if(!$id){ //On récupère toute les courses terminées
+            $data=dbRequestEndingRace($db,$user->getClub(),$user->getAdmin());
+        }else{
+            $data=dbRequestScoreCource($db,$id);
+        }       
+    }
+}
+
+//Si nous voulons la vitesse 
+if($request=='vitesse'){
+    if($requestMethod=='GET'){
+        if($id){
+            $data=dbRequestVitesse($db,$id);
+        }
+    }
+}
+
+//On envoie les données
+sendJsonData($data,$requestMethod);
+
+
+
+
+
+function sendJsonData($data,$code){
+    header('Content-Type: application/json');
+    header('Cache-control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    if ($data != NULL) {
+        if ($code == 'POST') {
+            header('HTTP/1.1 201 Created');
+        } else {
+            header('HTTP/1.1 200 OK');
+        }
+            echo json_encode($data);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error');
+    }
+    exit();
 }
 
