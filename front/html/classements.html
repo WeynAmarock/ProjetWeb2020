@@ -6,7 +6,6 @@
         <!-- Scripts JS -->
         <script type="text/javascript" src= "../js\ajax.js" defer></script>
         <script type="text/javascript" src= "../js\classement.js" defer></script>
-        <script type="text/javascript" src= "../js\user.js" defer></script>
         <!-- Fichiers CSS -->
         <link type="text/css" rel="stylesheet" href="../css/header.css">
         <link type="text/css" rel="stylesheet" href="../css/main.css">
@@ -35,13 +34,10 @@
                 </ul>
 
             </div>
-            <div id="user"></div>
         </div>
         <div id="contenu">
             <h1>Classements</h1>
-            <p>Seul le classement des courses passées est affiché, si le classement de votre course n'est pas présent, c'est que la date n'est pas passée.</p>
             <section id='course'>
-                <div id='vitesse'></div>
                 <table id='tab_courses' class="table table-stripped">
                     <thead>
                         <tr>
@@ -65,7 +61,7 @@
      
 
             <section id='classement'>
-                <div id=vitesse ></div><h3 ></h2>
+                <div id=vitesse ></div>
                 <table id='tab_classement' class="table table-striped">
                     <thead>
                         <tr>
@@ -85,12 +81,9 @@
 
                     </tbody>
                 </table>
-                <div id="zone_boutons">
-                    <button type="button" class="button" id='Retour'>Retour</button>
-                </div>
-                
+                <button type="button" class="button" id='Retour'>Retour</button>
             </section>
-            <br><br>
+            
         </div>
         <footer>
             <hr id="grey_hr">
