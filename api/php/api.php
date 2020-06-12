@@ -1,459 +1,158 @@
 <?php
 
-require_once('constants.php');
+require_once('database.php');
 
-
-//----------------------------------------------------------------------------
-//--- dbConnect --------------------------------------------------------------
-//----------------------------------------------------------------------------
-// Crée la connexion à une BDD
-// \return Renvoie une erreur ou la base de donnée autrement .
-function dbConnect()
-  {
-    try
-    {
-      $db = new PDO('mysql:host='.DB_SERVER.';dbname='.DB_NAME.';charset=utf8',
-        DB_USER, DB_PASSWORD);
-    }
-    catch (PDOException $exception)
-    {
-      error_log('Connection error: '.$exception->getMessage());
-      return false;
-    }
-    return $db;
+//Connexion à la base de donnéee
+$db= dbConnect();
+if($db == false){
+    header('HTTP/1.1 503 Service Unavailable');
+    exit;
 }
 
-//----------------------------------------------------------------------------
-//--- dbCreateUser -----------------------------------------------------------
-//----------------------------------------------------------------------------
-// Crée l'object user
-// \param $db La connexion à la BDD
-// \param $mail Le mail du user 
-// \return L'objet user
-function dbCreateUser($db,$mail){
-  try{
-    $request='SELECT u.mail, u.prenom, u.nom, u.password, u.admin, c.club FROM user u JOIN club c ON u.mail=c.mail WHERE u.mail=:mail';
-    $statement=$db->prepare($request);
-    $statement->bindParam(':mail', $mail, PDO::PARAM_STR,255);
-    $statement->execute();
-    $user = $statement->fetchAll(PDO::FETCH_CLASS, 'User');
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $user[0];
+// Création d'un user
+//C'est içi que l'on place en dur le mail du user
+$mailUser = 'mccall@serie.fr';
+$user=dbCreateUser($db,$mailUser);
+
+// On récupère la requete de ajax.js
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$request = substr($_SERVER['PATH_INFO'], 1);
+$request = explode('/', $request);
+$requestRessource = array_shift($request);
+
+if ($requestMethod == 'OPTIONS')
+{
+header('HTTP/1.1 200 OK');
+exit;
+}
+
+//On récupère l'id dans l'URL
+$id= array_shift($request); //id du commentaire
+if ($id == '')    $id= NULL;
+
+//Si on veut le user
+if($requestRessource=='user'){
+    $data=[
+        "nom"=>$user->getnom(),
+        "prenom"=>$user->getPrenom(),
+        "mail"=>$user->getMail(),
+    ];
 }
 
 
-//----------------------------------------------------------------------------
-//--- dbRequestCyclistes -----------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne tout les cyclistes 
-// \param $db La connexion à la BDD
-// \param $club Le club des cyclistes
-// \param $admin Vrais si le user est l'admin
-// \return Une liste des cyclistes
-function dbRequestCyclistes($db,$club,$admin){
-  try{
-    $request = 'SELECT * FROM cycliste';
-    if(!$admin){
-      $request = $request.' WHERE club=:club';
+//Si on veut les cyclistes
+if($requestRessource=='cyclistes'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCyclistes($db,$user->getClub(),$user->getAdmin());
     }
-    $statement = $db->prepare($request);
-    if(!$admin){
-      $statement->bindParam(':club', $club, PDO::PARAM_STR,255);
+    if($requestMethod=='PUT'){
+        parse_str(file_get_contents('php://input'), $_PUT);
+        if(isset($_PUT['mail']) && isset($_PUT['nom']) && isset($_PUT['prenom'])&& isset($_PUT['num_licence'])
+                && isset($_PUT['date']) && isset($_PUT['club']) &&  isset($_PUT['code']) && isset($_PUT['valide'])){  
+
+            $data=dbModifyCyclist($db,$_PUT['mail'],$_PUT['nom'],$_PUT['prenom'],
+                $_PUT['num_licence'],$_PUT['date'],$_PUT['club'],$_PUT['code'],$_PUT['valide']);
+
+        }
     }
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result;     
 }
 
-//----------------------------------------------------------------------------
-//--- dbRequestCodeInsee -----------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne tout les codes INSEE 
-//\parma $db La connexion à la BDD
-//\return La liste des code INSEE
-function dbRequestCodeInsee($db){
-  try{
-    $request='SELECT code_insee FROM ville';
-    $statement = $db->prepare($request);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result;  
+//Si on veut les code INSEE
+if($requestRessource=='code_insee'){
+    if($requestMethod=='GET'){
+        $data=dbRequestCodeInsee($db);
+    }
 }
 
-//----------------------------------------------------------------------------
-//--- dbRequestClub ----------------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne tout les clubs
-//\parma $db La connexion à la BDD
-//\return La liste des clubs
-function dbRequestClub($db){
-  try{
-    $request='SELECT club FROM club';
-    $statement = $db->prepare($request);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result;  
+//Si on veut les clubs
+if($requestRessource=='clubs'){
+    if($requestMethod=='GET'){
+        $data=dbRequestClub($db);
+    }
 }
 
-//----------------------------------------------------------------------------
-//--- dbModifyCyclist --------------------------------------------------------
-//----------------------------------------------------------------------------
-//Modifie les données dans la bdd des cyclistes
-// \param $db La connecion à la BDD
-// \param $mail Le mail du cycliste à modifier
-// \param $nom Le nom à mettre dans la BDD
-// \param $prenom Le prenom à mettre dans la BDD
-// \param $num_licence Le numéro de licence à mettre dans la BDD
-// \param $date La date de naissance à mettre dans la BDD
-// \param $club Le nom du club à mettre dans la BDD
-// \param $code_insee Le code INSEE à mettre dans la BDD
-// \param $valide Si le cycliste est valide à mettre dans la BDD
-// \return Renvoie FALSE en cas d'erreur et TRUE autrement 
-function dbModifyCyclist($db,$mail,$nom,$prenom,$num_licence,$date,$club,$code_insee,$valide){
-  try{
-    $request = 'UPDATE cycliste SET nom=:nom, prenom=:prenom, num_licence=:num_licence,
-          date_naissance=:date, valide=:valide, club=:club, code_insee=:code_insee
-          WHERE mail=:mail';
-    $statement = $db->prepare($request);
-    $statement->bindParam(':mail', $mail, PDO::PARAM_STR, 255);
-    $statement->bindParam(':nom', $nom, PDO::PARAM_STR, 100);
-    $statement->bindParam(':prenom', $prenom, PDO::PARAM_STR, 100);
-    $statement->bindParam(':num_licence', $num_licence, PDO::PARAM_INT);
-    $statement->bindParam(':date', $date, PDO::PARAM_STR);
-    $statement->bindParam(':valide', $valide, PDO::PARAM_BOOL);
-    $statement->bindParam(':club', $club, PDO::PARAM_STR,255);
-    $statement->bindParam(':code_insee', $code_insee, PDO::PARAM_INT);
-    $statement->execute();
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return true;
+//Si on veut une course 
+if($requestRessource=='course'){
+    if($requestMethod=='GET'){
+        if($id){
+            $data=dbRequestRace($db,$id);
+        }
+    }
 }
 
-//----------------------------------------------------------------------------
-//--- dbRequestRace ----------------------------------------------------------
-//----------------------------------------------------------------------------
-// Retourne une course 
-// \param $db La connexion à la BDD
-// \return Une course
-function dbRequestRace($db,$id){
-  try{
-    $request='SELECT * FROM course WHERE id=:id';
-    $statement = $db->prepare($request);
-    $statement->bindParam(':id',$id);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result[0];     
-}
-  
-
-
-//----------------------------------------------------------------------------
-//--- dbRequestRaces ---------------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne toutes les courses 
-// \param $db La connexion à la BDD.
-// \return Une liste de toute les courses
-function dbRequestRaces($db){
-  try{
-    $request = 'SELECT * FROM course';
-    $statement = $db->prepare($request);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result;     
+//Si on veut les courses
+if($requestRessource=='courses'){
+    if($requestMethod=='GET'){
+        //Dans le cas où on veut toute les courses 
+        if(!$id){
+            $data=dbRequestRaces($db);
+        }else{
+            $req=substr($id,0,2); //Variable afin de savoir si on affiche les gens inscrits ou non à la course 
+            $idCourse=$id[2];
+            if($req=='in'){//Nous voulons les cyclistes qui participent à la course
+                $data=dbRequestCyclistOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }else if($req=='no'){//Nous voulons les cyclistes qui ne participent pas à la course
+                $data=dbRequestCyclistNotOnRace($db,$user->getClub(),$user->getAdmin(),$idCourse);
+            }
+            
+        }        
+    }
+    if($requestMethod=='POST'){
+        if (isset($_POST['id']) && isset($_POST['mail'])) {
+            $data=dbAddCyclistOnRace($db,$_POST['mail'],$_POST['id']);
+        }
+    }
+    if($requestMethod=='DELETE'){
+        if($id){
+            //Le id est de la forme idcourseMail
+            $idCourse=$id[0];
+            $mail=substr($id,1);
+            $data=dbDeleteCyclistOnRace($db,$mail,$idCourse); //Pas sûr
+        }
+    }
 }
 
-//----------------------------------------------------------------------------
-//--- dbRequestClubRace ------------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne le club qui organise la course
-// \param $db La connexion à la BDD.
-// \param $id L'id de la course 
-// \return le nom du club 
-function dbRequestClubRace($db,$id){
-  try{
-    $request = 'SELECT club FROM course WHERE id=:id';
-    $statement = $db->prepare($request);
-    $statement->bindParam(':id',$id);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-  return $result[0];     
+//Si nous voulons les classements 
+if($requestRessource=='classement'){
+    if($requestMethod=='GET'){
+        if(!$id){ //On récupère toute les courses terminées
+            $data=dbRequestEndingRace($db,$user->getClub(),$user->getAdmin());
+        }else{
+            $data=dbRequestScoreCource($db,$id);
+        }       
+    }
 }
 
-
-//----------------------------------------------------------------------------
-//--- dbRequestCyclistOnRace -------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne les informations sur les cyclistes qui participent à la course
-// \param $db La connexion à la BDD
-//\param $club Le nom du club du user
-//\param $admin Vrai si le user est l'admin
-//\param $id L'id de la course 
-//Return Le nom, prenom et mail des cyclistes enregistrés dans la course
-function dbRequestCyclistOnRace($db,$club,$admin,$id){
-  $clubCourse=dbRequestClubRace($db,$id);
-  try{
-    $request='SELECT cy.nom, cy.prenom, cy.mail FROM participe p 
-        JOIN cycliste cy ON p.mail=cy.mail
-        WHERE p.id=:id AND cy.valide=1';
-    if(!$admin && $clubCourse['club']!=$club){
-      $request=$request . ' AND cy.club=:club';
+//Si nous voulons la vitesse 
+if($requestRessource=='vitesse'){
+    if($requestMethod=='GET'){
+        if($id){       
+            $data=dbRequestVitesse($db,$id);
+        }
     }
-    $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id);
-    if(!$admin && $clubCourse['club']!=$club){
-      $statement->bindParam(':club',$club);
-    }
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-    if(!$result){ //Dans le cas ou on supprime toute les personnes d'une course 
-      $result="vide";
-    }
-    return $result;
-           
 }
 
-//----------------------------------------------------------------------------
-//--- dbRequestMailOnRace ----------------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne le mail des cyclistes dans la course
-//\param $db La connexion à la BDD
-//\param $club Le nom du club du user
-//\param $admin Vrais si le user est l'admin
-//\param $id L'identifiant de la course
-function dbRequestMailOnRace($db,$club,$admin,$id){
-  try{
-    $request='SELECT p.mail FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id AND c.valide=1';
-    if(!$admin){
-      $request=$request . ' AND c.club=:club';
+//On envoie les données
+sendJsonData($data,$requestMethod);
+
+
+
+
+
+function sendJsonData($data,$code){
+    header('Content-Type: application/json');
+    header('Cache-control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    if ($data != NULL) {
+        if ($code == 'POST') {
+            header('HTTP/1.1 201 Created');
+        } else {
+            header('HTTP/1.1 200 OK');
+        }
+            echo json_encode($data);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error');
     }
-    $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id);
-    if(!$admin){
-      $statement->bindParam(':club',$club);
-    }
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-    return $result;     
+    exit();
 }
 
-
-//----------------------------------------------------------------------------
-//--- dbRequestCyclistNotOnRace ----------------------------------------------
-//----------------------------------------------------------------------------
-//Retourne les nom, prenoms, et mail des cyclistes non inscrits à la course
-//\param $db La connexion à la BDD
-//\param $club Le nom du club
-//\param $admin Vrais si le user est l'admin
-//\param $id L'identifiant de la course
-function dbRequestCyclistNotOnRace($db,$club,$admin,$id){
-  $mails=dbRequestMailOnRace($db,$club,$admin,$id);
-  try{
-    $request='SELECT nom, prenom, mail FROM cycliste WHERE valide=1';
-    foreach($mails as $mail){
-        $request=$request.' AND mail!=\''.$mail['mail'].'\'';
-    }
-    if(!$admin){
-      $request=$request . ' AND club=:club';
-    }
-    $statement=$db->prepare($request);
-    if(!$admin){
-      $statement->bindParam(':club',$club);
-    }
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-  {
-    error_log('Request error: '.$exception->getMessage());
-    return false;
-  }
-    return $result;
-}
-
-
-//----------------------------------------------------------------------------
-//--- dbAddCyclisteOnRace ----------------------------------------------------
-//----------------------------------------------------------------------------
-//Ajoute un cycliste dans la course
-//\param $db La connexion à la BDD 
-//\param $id L'identifiant de la course
-//\param $mail le mail du cycliste
-// \return Vrais si l'ajout est réusie et faux autrement
-function dbAddCyclistOnRace($db,$mail,$id){
-  try{
-    $request='INSERT INTO participe(mail, id)
-      VALUES(:mail,:id)';
-    $statement = $db->prepare($request);
-    $statement->bindParam(':mail', $mail, PDO::PARAM_STR);
-    $statement->bindParam(':id', $id, PDO::PARAM_INT);
-    $statement->execute();
-  }
-    catch (PDOException $exception)
-    {
-      error_log('Request error: '.$exception->getMessage());
-      return false;
-    }
-    return true;
-}
-
-//----------------------------------------------------------------------------
-//--- dbDeleteCyclistOnRace --------------------------------------------------
-//----------------------------------------------------------------------------
-//Supprime un cycliste de la course
-//\param $db La connexion à la BDD 
-//\param $mail le mail du cycliste
-//\param $id L'identifiant de la course
-// \return Vrais si la suppression est réusie et faux autrement
-function dbDeleteCyclistOnRace($db,$mail,$id){
-  try{
-    $request='DELETE FROM participe WHERE mail=:mail AND id=:id';
-    $statement = $db->prepare($request);
-    $statement->bindParam(':mail', $mail, PDO::PARAM_STR);
-    $statement->bindParam(':id', $id, PDO::PARAM_INT);
-    $statement->execute();
-  }
-  catch (PDOException $exception)
-    {
-      error_log('Request error: '.$exception->getMessage());
-      return false;
-    }
-    return true;
-}
-
-
-//----------------------------------------------------------------------------
-//--- dbRequestEndingRace ----------------------------------------------------
-//----------------------------------------------------------------------------
-// Retourne les courses terminées, qui ont dépassé la date actuelle 
-//\param $db La connexion à la BDD 
-// \param $club Le nom du club du user
-// \param $admin Boolean, Vrais si le user est l'admin
-function dbRequestEndingRace($db,$club,$admin){
-  $today= date("Y-m-d");
-  try{
-    $request='SELECT * FROM course WHERE date>'.$today;
-    if(!$admin){
-      $request=$request.' AND club=:club';
-    }
-    $statement = $db->prepare($request);
-    if(!$admin){
-      $statement->bindParam(':club',$club,PDO::PARAM_STR);
-    }
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-    {
-      error_log('Request error: '.$exception->getMessage());
-      return false;
-    }
-    return $result;
-}
-
-//----------------------------------------------------------------------------
-//--- dbRequestScoreCource ---------------------------------------------------
-//----------------------------------------------------------------------------
-// Retourne les scores des cyclistes qui ont participés à la course 
-//\param $db La connexion à la BDD 
-// \param $id Identifiant de la course
-function dbRequestScoreCource($db,$id){
-  try{
-    $request='SELECT p.place, p.dossard, c.nom, c.prenom, c.club, c.num_licence, c.categorie,  c.categorie_valeur, p.point
-    FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id ORDER BY p.place';
-    $statement=$db->prepare($request);
-    $statement->bindParam(':id', $id, PDO::PARAM_INT);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-    {
-      error_log('Request error: '.$exception->getMessage());
-      return false;
-    }
-    return $result;
-}
-
-
-
-//----------------------------------------------------------------------------
-//--- dbRequestVitesse -------------------------------------------------------
-//----------------------------------------------------------------------------
-// Retourne le temps indicatif du 1er de la course 
-//\param $db La connexion à la BDD 
-// \param $id Identifiant de la course
-function dbRequestVitesse($db,$id){
-  try{
-    $request='SELECT  c.distance, p.temps FROM course c JOIN participe p ON c.id=p.id WHERE p.id=:id AND p.place=1';
-    $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id,PDO::PARAM_STR);
-    $statement->execute();
-    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-  }
-  catch (PDOException $exception)
-    {
-      error_log('Request error: '.$exception->getMessage());
-      return false;
-    }
-    $var=$result[0];
-    $vitesse=intval($var['distance'])/intval($var['temps']);
-    return $vitesse;
-}
-
-?>
