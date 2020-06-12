@@ -29,9 +29,9 @@ $('#courses').on('click', 'button', () => {
     ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no'+id, loadCoureurNonInscrit);
 });
 
-///////////////////////////////////////////////////////////////////////////////////////////
-////////////////Fonctions d'affichage des données de la course selectionnée////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
+//#---------------------------------------------------------------------------------#//
+//#-----------------Affichage des données de la course selectionnée-----------------#//
+//#---------------------------------------------------------------------------------#// 
 function affichage(){
     document.getElementById('content').style.display='none';
     document.getElementById('content_bis').style.display='block';
@@ -50,7 +50,9 @@ function fillRace(course){
     return chemin;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+//#---------------------------------------------------------------------------------#//
+//#----------Chargement et récupération des coureurs inscrits/non-inscrits----------#//
+//#---------------------------------------------------------------------------------#// 
 
 function loadCoureurInscrit(cyclistes){
     var humain = "";
@@ -62,11 +64,11 @@ function loadCoureurInscrit(cyclistes){
 }
 
 function fillInscrit(coureur){
-    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox" checked></td></tr>';
+    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox" id="'+coureur['mail']+'" checked></td></tr>';
     return humain;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+//#---------------------------------------------------------------------------------#//
 
 function loadCoureurNonInscrit(cyclistes){
     var humain = "";
@@ -78,14 +80,14 @@ function loadCoureurNonInscrit(cyclistes){
 }
 
 function fillNonInscrit(coureur){
-    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox"></td></tr>';
+    var humain = '<tr><td>'+coureur['nom']+'</td><td>'+coureur['prenom']+'</td><td>'+coureur['mail']+'</td><td><input type="checkbox" id="'+coureur['mail']+'"></td></tr>';
     return humain;
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////Ajout et Suppression//////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
+//#---------------------------------------------------------------------------------#//
+//#----------------------------------Bouton Retour----------------------------------#//
+//#---------------------------------------------------------------------------------#// 
 
 $('#btnRetour').click(() =>{
     var inscrit = document.querySelector("#inscrits");
@@ -96,3 +98,27 @@ $('#btnRetour').click(() =>{
     non_inscrit.innerHTML = "";
 
   });
+
+//#---------------------------------------------------------------------------------#//
+//#-----------------------Ajout Suppression des inscriptions------------------------#//
+//#---------------------------------------------------------------------------------#// 
+
+$('#btnCourse').click(() =>{
+    //ajaxRequest('POST', 'http://prj-cir2-web-api.monposte/php/api.php/participe/', maFonction);
+    //ajaxRequest('GET', 'http://prj-cir2-web-api.monposte/php/api.php/courses/no'+id, loadCoureurNonInscrit);
+    //Récupération des cases cochées
+    $("input[type='checkbox']:checked").each(
+        function() {
+
+            console.log($(this).attr('id'));
+        }
+    );      
+    
+    var inscrits = document.getElementById('inscrits');
+    inscrits = inscrits.innerText||inscrits.textContent;
+    console.log(inscrits);
+
+
+});
+
+
