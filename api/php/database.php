@@ -256,7 +256,11 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
     error_log('Request error: '.$exception->getMessage());
     return false;
   }
-    return $result;     
+    if(!$result){ //Dans le cas ou on supprime toute les personnes d'une course 
+      $result="vide";
+    }
+    return $result;
+           
 }
 
 //----------------------------------------------------------------------------
@@ -411,10 +415,10 @@ function dbRequestEndingRace($db,$club,$admin){
 // \param $id Identifiant de la course
 function dbRequestScoreCource($db,$id){
   try{
-    $request='SELECT p.place, p.dossart, c.nom, c.prenom, c.club, c.num_licence, c.categorie, c.categorie_categorie_valeur, p.point
-    FROM participe p JOIN cycliste c On p.mail=c.mail where p.id=:id ORDER BY p.place';
+    $request='SELECT p.place, p.dossard, c.nom, c.prenom, c.club, c.num_licence, c.categorie,  c.categorie_valeur, p.point
+    FROM participe p JOIN cycliste c ON p.mail=c.mail WHERE p.id=:id ORDER BY p.place';
     $statement=$db->prepare($request);
-    $statement->bindParam(':id',$id,PDO::PARAM_STR);
+    $statement->bindParam(':id', $id, PDO::PARAM_INT);
     $statement->execute();
     $result = $statement->fetchAll(PDO::FETCH_ASSOC);
   }
@@ -425,6 +429,8 @@ function dbRequestScoreCource($db,$id){
     }
     return $result;
 }
+
+
 
 //----------------------------------------------------------------------------
 //--- dbRequestVitesse -------------------------------------------------------
@@ -448,7 +454,6 @@ function dbRequestVitesse($db,$id){
     $var=$result[0];
     $vitesse=intval($var['distance'])/intval($var['temps']);
     return $vitesse;
-
 }
 
 ?>
