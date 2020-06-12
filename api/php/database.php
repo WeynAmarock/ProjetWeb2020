@@ -230,7 +230,7 @@ function dbRequestClubRace($db,$id){
 //----------------------------------------------------------------------------
 //Retourne les informations sur les cyclistes qui participent à la course
 // \param $db La connexion à la BDD
-//\param $club Le nom du club 
+//\param $club Le nom du club du user
 //\param $admin Vrai si le user est l'admin
 //\param $id L'id de la course 
 //Return Le nom, prenom et mail des cyclistes enregistrés dans la course
@@ -264,7 +264,7 @@ function dbRequestCyclistOnRace($db,$club,$admin,$id){
 //----------------------------------------------------------------------------
 //Retourne le mail des cyclistes dans la course
 //\param $db La connexion à la BDD
-//\param $club Le nom du club
+//\param $club Le nom du club du user
 //\param $admin Vrais si le user est l'admin
 //\param $id L'identifiant de la course
 function dbRequestMailOnRace($db,$club,$admin,$id){
@@ -375,8 +375,12 @@ function dbDeleteCyclistOnRace($db,$mail,$id){
 
 
 //----------------------------------------------------------------------------
-//--- dbRequestEndingRace --------------------------------------------------
+//--- dbRequestEndingRace ----------------------------------------------------
 //----------------------------------------------------------------------------
+// Retourne les courses terminées, qui ont dépassé la date actuelle 
+//\param $db La connexion à la BDD 
+// \param $club Le nom du club du user
+// \param $admin Boolean, Vrais si le user est l'admin
 function dbRequestEndingRace($db,$club,$admin){
   $today= date("Y-m-d");
   try{
@@ -385,7 +389,7 @@ function dbRequestEndingRace($db,$club,$admin){
       $request=$request.' AND club=:club';
     }
     $statement = $db->prepare($request);
-    if($admin){
+    if(!$admin){
       $statement->bindParam(':club',$club,PDO::PARAM_STR);
     }
     $statement->execute();
@@ -399,9 +403,52 @@ function dbRequestEndingRace($db,$club,$admin){
     return $result;
 }
 
-/*$db=dbConnect();
-$test=dbRequestEndingRace($db,'AC GOUESNOU',0);
-var_dump($test);*/
+//----------------------------------------------------------------------------
+//--- dbRequestScoreCource ---------------------------------------------------
+//----------------------------------------------------------------------------
+// Retourne les scores des cyclistes qui ont participés à la course 
+//\param $db La connexion à la BDD 
+// \param $id Identifiant de la course
+function dbRequestScoreCource($db,$id){
+  try{
+    $request='SELECT p.place, p.dossart, c.nom, c.prenom, c.club, c.num_licence, c.categorie, c.categorie_categorie_valeur, p.point
+    FROM participe p JOIN cycliste c On p.mail=c.mail where p.id=:id ORDER BY p.place';
+    $statement=$db->prepare($request);
+    $statement->bindParam(':id',$id,PDO::PARAM_STR);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+    {
+      error_log('Request error: '.$exception->getMessage());
+      return false;
+    }
+    return $result;
+}
 
+//----------------------------------------------------------------------------
+//--- dbRequestVitesse -------------------------------------------------------
+//----------------------------------------------------------------------------
+// Retourne le temps indicatif du 1er de la course 
+//\param $db La connexion à la BDD 
+// \param $id Identifiant de la course
+function dbRequestVitesse($db,$id){
+  try{
+    $request='SELECT  c.distance, p.temps FROM course c JOIN participe p ON c.id=p.id WHERE p.id=:id AND p.place=1';
+    $statement=$db->prepare($request);
+    $statement->bindParam(':id',$id,PDO::PARAM_STR);
+    $statement->execute();
+    $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+  }
+  catch (PDOException $exception)
+    {
+      error_log('Request error: '.$exception->getMessage());
+      return false;
+    }
+    $var=$result[0];
+    $vitesse=intval($var['distance'])/intval($var['temps']);
+    return $vitesse;
+
+}
 
 ?>
